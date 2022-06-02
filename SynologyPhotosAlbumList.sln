@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SynologyPhotosAlbumList", "SynologyPhotosAlbumList\SynologyPhotosAlbumList.fsproj", "{A5F2E886-2908-40AB-829C-24E500118559}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Tests", "Tests\Tests.fsproj", "{170BE79E-086F-43D3-A2D9-5D0A6CC08D52}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A5F2E886-2908-40AB-829C-24E500118559}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5F2E886-2908-40AB-829C-24E500118559}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5F2E886-2908-40AB-829C-24E500118559}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5F2E886-2908-40AB-829C-24E500118559}.Release|Any CPU.Build.0 = Release|Any CPU
+		{170BE79E-086F-43D3-A2D9-5D0A6CC08D52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{170BE79E-086F-43D3-A2D9-5D0A6CC08D52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{170BE79E-086F-43D3-A2D9-5D0A6CC08D52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{170BE79E-086F-43D3-A2D9-5D0A6CC08D52}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
