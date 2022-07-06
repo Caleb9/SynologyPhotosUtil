@@ -57,31 +57,31 @@ many photos are added to "My Album", querying the API can take a
 moment. The output can for example look like this:
 
 ```
-/private_space_folder/my_photos/IMG_1111.jpg
+/personal_space_folder/my_photos/IMG_1111.jpg
 /shared_space_folder/IMG_2222.JPG
 ERROR: IMG_3333.jpeg folder inaccessible
 ```
 
 In this case "My Album" contains 3 photos:
-* The the IMG\_1111.jpg photo is located in one of the user's "private
+* The the IMG\_1111.jpg photo is located in one of the user's "personal
   space" folders, i.e. (by default) under `{your user's home
-  directory}/Photos` in a `private_space_folder/my_photos` folder.
+  directory}/Photos` in a `personal_space_folder/my_photos` folder.
 * The IMG\_2222.JPG photo is located in "shared space", i.e. under
   `photo` shared folder in `shared_space_folder` (note: the
-  distinction between shared and private folders in the output is a
-  TODO for now - for my own use case the difference is obvious thanks
-  to the folder structure).
+  distinction between shared and personal space folders in the output
+  is a TODO for now - for my own use case the difference is obvious
+  thanks to the folder structure).
 * In case of IMG\_3333.jpeg the physical location of the file is
   inaccessible for my\_user. This happens e.g. when there are other
   NAS users having access to "My Album" and they added photos from
-  their *private folders* to which my\_user does not have
-  access. These photos are listed at the end of the output.
+  folders to which my\_user does not have access. These photos are
+  listed at the end of the output.
 
 
 ## TODO
 
 * Query albums that user is not owner of, but has access to
-* Indicate if folder is private or shared in the output
+* Indicate if folder is in personal or shared space in the output
 * Improve command line syntax
 
 ## Code disclaimer

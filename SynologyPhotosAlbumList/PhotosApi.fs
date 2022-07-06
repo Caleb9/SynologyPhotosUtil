@@ -75,8 +75,7 @@ let private getDataFromResponseDto =
     | { Data = Some data } -> data
     | _ -> invalidArg (nameof ApiResponseDto) "Unexpected data"
 
-type LoginDto = (* cannot be private, otherwise JSON deserializer crashes *)
-    { Sid: string }
+type LoginDto = (* cannot be private, otherwise JSON deserializer crashes *) { Sid: string }
 
 let login
     (sendAsync: SendRequest)
@@ -101,7 +100,8 @@ let login
 
         sendRequest<ApiResponseDto<LoginDto>> sendAsync createLoginRequest
 
-    let validateLoginDto = validateApiResponseDto "Login"
+    let validateLoginDto =
+        validateApiResponseDto "Login"
 
     sendLoginRequest
     |> Result.bindAsyncToSync validateLoginDto
@@ -141,14 +141,16 @@ let searchForAlbumPassphrase
 
         sendRequest<ApiResponseDto<AlbumsDtoData>> sendAsync createGetOwnedAlbumsRequest
 
-    let validateAlbumsDto = validateApiResponseDto "Getting album passphrase"
+    let validateAlbumsDto =
+        validateApiResponseDto "Getting album passphrase"
 
     let rec searchForAlbumPassphrase' offset =
         let findPassphrase validAlbumsDto =
             let findAlbumInBatch =
                 List.tryFind (fun (album: AlbumItemDto) -> album.Name = albumName)
 
-            let albumsBatch = getDataListFromResponseDto validAlbumsDto
+            let albumsBatch =
+                getDataListFromResponseDto validAlbumsDto
 
             async {
                 match albumsBatch, findAlbumInBatch albumsBatch with
@@ -194,11 +196,13 @@ let listAlbum
 
         sendRequest<ApiResponseDto<PhotosDataDto>> sendAsync createListPhotosBatchRequest
 
-    let validateListPhotosDto = validateApiResponseDto "Fetching album contents"
+    let validateListPhotosDto =
+        validateApiResponseDto "Fetching album contents"
 
     let rec listAlbum' offset =
         let getNextBatchUntilDone validListPhotosDto =
-            let photosBatch = getDataListFromResponseDto validListPhotosDto
+            let photosBatch =
+                getDataListFromResponseDto validListPhotosDto
 
             async {
                 match photosBatch with
@@ -236,25 +240,29 @@ let listFolders
                  ("version", "1")
                  ("id", $"{folderId}") ])
 
-    let validateGetFolderDto = validateApiResponseDto "Getting folder"
+    let validateGetFolderDto =
+        validateApiResponseDto "Getting folder"
 
     let sendAndValidateGetFolderRequest api folderId =
         fun () -> createGetFolderRequest api folderId
         |> sendRequest<ApiResponseDto<{| Folder: FolderDto |}>> sendAsync
         |> Result.bindAsyncToSync validateGetFolderDto
 
-    let getPrivateFolder = sendAndValidateGetFolderRequest "SYNO.Foto.Browse.Folder"
+    let getPrivateSpaceFolder =
+        sendAndValidateGetFolderRequest "SYNO.Foto.Browse.Folder"
 
-    let getSharedFolder = sendAndValidateGetFolderRequest "SYNO.FotoTeam.Browse.Folder"
+    let getSharedSpaceFolder =
+        sendAndValidateGetFolderRequest "SYNO.FotoTeam.Browse.Folder"
 
     let getFolder folderId : Async<int * Result<FolderDto, ErrorResult>> =
         async {
-            let! privateFolderResult = getPrivateFolder folderId
+            let! privateSpaceFolderResult = getPrivateSpaceFolder folderId
 
             let getFolderResult =
-                match privateFolderResult with
+                match privateSpaceFolderResult with
                 | Error (ErrorResult.InvalidApiResponse (_, code)) when code = inaccessibleFolderErrorCode ->
-                    getSharedFolder folderId |> Async.RunSynchronously
+                    getSharedSpaceFolder folderId
+                    |> Async.RunSynchronously
                 | successOrOtherError -> successOrOtherError
 
             return

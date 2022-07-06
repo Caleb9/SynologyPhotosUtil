@@ -27,7 +27,7 @@ let ``Full sunshine scenario: valid arguments for album containing 3 photos`` ()
            "my_password" |]
 
     let inaccessibleFolderApiErrorCode = 642
-    
+
     let sendRequestStub (request: HttpRequestMessage) =
         task {
             let! actualContentString = request.Content.ReadAsStringAsync()
@@ -105,7 +105,7 @@ let ``Full sunshine scenario: valid arguments for album containing 3 photos`` ()
                         {| Success = true
                            Data =
                             {| List =
-                                [ {| Id = 1 (* photo in PRIVATE folder *)
+                                [ {| Id = 1 (* photo in PERSONAL SPACE folder *)
                                      Owner_user_id = 2
                                      Folder_id = 3
                                      Filename = "photo1" |}
@@ -113,12 +113,12 @@ let ``Full sunshine scenario: valid arguments for album containing 3 photos`` ()
                                      Owner_user_id = 5
                                      Folder_id = 6
                                      Filename = "photo2" |}
-                                  {| Id = 7 (* photo in SHARED folder *)
+                                  {| Id = 7 (* photo in SHARED SPACE folder *)
                                      Owner_user_id = 8
                                      Folder_id = 9
                                      Filename = "photo3" |} ] |} |}
-                | getPrivateFolderForPhoto1 when
-                    getPrivateFolderForPhoto1
+                | getPersonalSpaceFolderForPhoto1 when
+                    getPersonalSpaceFolderForPhoto1
                     |> matches
                         "http://ds.address/photo/webapi/entry.cgi/SYNO.Foto.Browse.Folder"
                         actualContentString
@@ -134,8 +134,8 @@ let ``Full sunshine scenario: valid arguments for album containing 3 photos`` ()
                             {| Folder =
                                 {| Id = 3
                                    Name = "/c/private/folder1" |} |} |}
-                | getPrivateFolderForPhoto2 when
-                    getPrivateFolderForPhoto2
+                | getPersonalSpaceFolderForPhoto2 when
+                    getPersonalSpaceFolderForPhoto2
                     |> matches
                         "http://ds.address/photo/webapi/entry.cgi/SYNO.Foto.Browse.Folder"
                         actualContentString
@@ -144,12 +144,12 @@ let ``Full sunshine scenario: valid arguments for album containing 3 photos`` ()
                           "version=1"
                           "method=get"
                           "id=6" ]
-                    -> (* failing response so we'll look among shared folders *)
+                    -> (* failing response so we'll look among shared space folders *)
                     createResponseWithJsonContent
                         {| Success = false
                            Error = {| Code = inaccessibleFolderApiErrorCode |} |}
-                | getSharedFolderForPhoto2 when
-                    getSharedFolderForPhoto2
+                | getSharedSpaceFolderForPhoto2 when
+                    getSharedSpaceFolderForPhoto2
                     |> matches
                         "http://ds.address/photo/webapi/entry.cgi/SYNO.FotoTeam.Browse.Folder"
                         actualContentString
@@ -162,8 +162,8 @@ let ``Full sunshine scenario: valid arguments for album containing 3 photos`` ()
                     createResponseWithJsonContent
                         {| Success = false
                            Error = {| Code = inaccessibleFolderApiErrorCode |} |}
-                | getPrivateFolderForPhoto3 when
-                    getPrivateFolderForPhoto3
+                | getPersonalFolderForPhoto3 when
+                    getPersonalFolderForPhoto3
                     |> matches
                         "http://ds.address/photo/webapi/entry.cgi/SYNO.Foto.Browse.Folder"
                         actualContentString
@@ -172,12 +172,12 @@ let ``Full sunshine scenario: valid arguments for album containing 3 photos`` ()
                           "version=1"
                           "method=get"
                           "id=9" ]
-                    -> (* failing response so we'll look among shared folders *)
+                    -> (* failing response so we'll look among shared space folders *)
                     createResponseWithJsonContent
                         {| Success = false
                            Error = {| Code = inaccessibleFolderApiErrorCode |} |}
-                | getSharedFolderForPhoto3 when
-                    getSharedFolderForPhoto3
+                | getSharedSpaceFolderForPhoto3 when
+                    getSharedSpaceFolderForPhoto3
                     |> matches
                         "http://ds.address/photo/webapi/entry.cgi/SYNO.FotoTeam.Browse.Folder"
                         actualContentString
@@ -197,7 +197,8 @@ let ``Full sunshine scenario: valid arguments for album containing 3 photos`` ()
         }
 
     (* Act *)
-    let actualResult = Program.listPhotosInAlbum args sendRequestStub
+    let actualResult =
+        Program.listPhotosInAlbum args sendRequestStub
 
     (* Assert *)
     match actualResult with
