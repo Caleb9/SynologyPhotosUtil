@@ -62,13 +62,7 @@ let ``Full sunshine scenario: valid arguments for album containing 3 photos`` ()
                     -> (* response does not contain the album we're looking for *)
                     createResponseWithJsonContent
                         {| Success = true
-                           Data =
-                            {| List =
-                                List.replicate
-                                    100
-                                    {| Id = 1
-                                       Name = "NOT_my_album"
-                                       Passphrase = "NOT_valid_passhprase" |} |} |}
+                           Data = {| List = List.replicate 100 {| Id = 1; Name = "NOT_my_album" |} |} |}
                 | getSecondBatchOfAlbums when
                     getSecondBatchOfAlbums
                     |> matches
@@ -83,18 +77,14 @@ let ``Full sunshine scenario: valid arguments for album containing 3 photos`` ()
                     ->
                     createResponseWithJsonContent
                         {| Success = true
-                           Data =
-                            {| List =
-                                [ {| Id = 42
-                                     Name = "my_album"
-                                     Passphrase = "fake_passphrase" |} ] |} |}
+                           Data = {| List = [ {| Id = 42; Name = "my_album" |} ] |} |}
                 | getPhotosInAlbum when
                     getPhotosInAlbum
                     |> matches (* first batch of photos *)
                         "http://ds.address/photo/webapi/entry.cgi"
                         actualContentString
                         [ "_sid=fake_sid"
-                          "passphrase=fake_passphrase"
+                          "album_id=42"
                           "api=SYNO.Foto.Browse.Item"
                           "version=1"
                           "method=list"
@@ -196,21 +186,22 @@ let ``Full sunshine scenario: valid arguments for album containing 3 photos`` ()
                        + $"Content: %s{actualContentString}\nDid you set up the stub correctly?"
         }
 
-    (* Act *)
-    let actualResult =
-        Program.listPhotosInAlbum args sendRequestStub
+    async {
+        (* Act *)
+        let! actualResult = Program.listPhotosInAlbum args sendRequestStub
 
-    (* Assert *)
-    match actualResult with
-    | Ok stdOut ->
-        stdOut
-        |> should
-            equal
-            (sprintf
-                "%s\n%s\n%s\n"
-                "/b/shared/folder2/photo3"
-                "/c/private/folder1/photo1"
-                "ERROR: photo2 folder inaccessible")
-    | Error _ ->
-        actualResult
-        |> should be (ofCase <@ Result<string, string * int>.Ok @>)
+        (* Assert *)
+        match actualResult with
+        | Ok stdOut ->
+            stdOut
+            |> should
+                equal
+                (sprintf
+                    "%s\n%s\n%s\n"
+                    "/b/shared/folder2/photo3"
+                    "/c/private/folder1/photo1"
+                    "ERROR: photo2 folder inaccessible")
+        | Error _ ->
+            actualResult
+            |> should be (ofCase <@ Result<string, string * int>.Ok @>)
+    }

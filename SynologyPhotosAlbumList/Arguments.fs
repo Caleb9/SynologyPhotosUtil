@@ -10,26 +10,22 @@ type T =
       OtpCode: string option }
 
 let parseArgs (args: string array) : Result<T, ErrorResult> =
-    let hasRequiredArguments =
-        Array.length args >= 4
+    let parseUrl arg =
+        match Uri.TryCreate(arg, UriKind.Absolute) with
+        | true, url -> Ok url
+        | false, _ -> Error <| ErrorResult.InvalidUrl arg
 
-    let hasOptionalOtpCodeArgument =
-        Array.length args >= 5
+    let createArguments url albumName userName password otpOption =
+        parseUrl url
+        |> Result.map (fun url ->
+            { Url = url
+              AlbumName = albumName
+              Username = userName
+              Password = password
+              OtpCode = otpOption })
 
-    let otpCode =
-        match hasOptionalOtpCodeArgument with
-        | true -> Some args[4]
-        | false -> None
-
-    match hasRequiredArguments with
-    | true ->
-        match Uri.TryCreate(args[0], UriKind.Absolute) with
-        | true, url ->
-            Ok
-            <| { Url = url
-                 AlbumName = args[1]
-                 Username = args[2]
-                 Password = args[3]
-                 OtpCode = otpCode }
-        | _ -> Error <| ErrorResult.InvalidUrl args[0]
-    | false -> Error <| ErrorResult.InvalidArguments
+    match List.ofArray args with
+    | urlString :: albumName :: userName :: password :: otp :: _ ->
+        createArguments urlString albumName userName password (Some otp)
+    | urlString :: albumName :: userName :: password :: _ -> createArguments urlString albumName userName password None
+    | _ -> Error <| ErrorResult.InvalidArguments

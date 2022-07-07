@@ -9,7 +9,10 @@
         <Compile Include="ErrorResult.fs"/>
         <Compile Include="Result.fs"/>
         <Compile Include="Arguments.fs"/>
+        <Compile Include="SynologyApi.fs"/>
+        <Compile Include="AuthenticationApi.fs"/>
         <Compile Include="PhotosApi.fs"/>
+        <Compile Include="ListAlbumCommand.fs"/>
         <Compile Include="Program.fs"/>
     </ItemGroup>
 
