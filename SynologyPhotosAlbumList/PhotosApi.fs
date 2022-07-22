@@ -1,6 +1,5 @@
 module SynologyPhotosAlbumList.PhotosApi
 
-open System
 open System.Net.Http
 open SynologyPhotosAlbumList
 
@@ -19,15 +18,17 @@ let dataListBatchSize = 100
 
 let isLastBatch batch = Seq.length batch < dataListBatchSize
 
-let createGetOwnedAlbumsRequest (baseAddress: Uri) (sid: SynologyApi.SessionId) (offset: int) : HttpRequestMessage =
-    SynologyApi.createRequest
-        baseAddress
-        "photo/webapi/entry.cgi/SYNO.Foto.Browse.Album"
-        (SynologyApi.createCommonFormUrlEncodedContentKeysAndValues "SYNO.Foto.Browse.Album" 2 "list" (Some sid)
-         @ [ ("offset", $"{offset}")
-             ("limit", $"{dataListBatchSize}")
-             ("sort_by", "album_name")
-             ("sort_direction", "asc") ])
+let createGetOwnedAlbumsRequest
+    (address: Arguments.Address)
+    (sid: SynologyApi.SessionId)
+    (offset: int)
+    : HttpRequestMessage =
+    SynologyApi.createRequest address "photo/webapi/entry.cgi/SYNO.Foto.Browse.Album"
+    <| SynologyApi.createCommonFormUrlEncodedContentKeysAndValues "SYNO.Foto.Browse.Album" 2 "list" (Some sid)
+       @ [ ("offset", $"{offset}")
+           ("limit", $"{dataListBatchSize}")
+           ("sort_by", "album_name")
+           ("sort_direction", "asc") ]
 
 type PhotoDto =
     { Id: int
@@ -38,35 +39,31 @@ type PhotoDto =
 type PhotoListDto = ListDto<PhotoDto>
 
 let createListPhotosBatchRequest
-    (baseAddress: Uri)
+    (address: Arguments.Address)
     (sid: SynologyApi.SessionId)
     (albumId: int)
     (offset: int)
     : HttpRequestMessage =
-    SynologyApi.createRequest
-        baseAddress
-        "photo/webapi/entry.cgi"
-        (SynologyApi.createCommonFormUrlEncodedContentKeysAndValues "SYNO.Foto.Browse.Item" 1 "list" (Some sid)
-         @ [ ("album_id", $"%i{albumId}")
-             ("offset", $"%i{offset}")
-             ("limit", $"{dataListBatchSize}")
-             ("sort_by", "filename")
-             ("sort_direction", "asc") ])
+    SynologyApi.createRequest address "photo/webapi/entry.cgi"
+    <| SynologyApi.createCommonFormUrlEncodedContentKeysAndValues "SYNO.Foto.Browse.Item" 1 "list" (Some sid)
+       @ [ ("album_id", $"%i{albumId}")
+           ("offset", $"%i{offset}")
+           ("limit", $"{dataListBatchSize}")
+           ("sort_by", "filename")
+           ("sort_direction", "asc") ]
 
 type FolderDto = { Id: int; Name: string }
 
 let inaccessibleFolderErrorCode = 642
 
 let createGetFolderRequest
-    (baseAddress: Uri)
+    (address: Arguments.Address)
     (sid: SynologyApi.SessionId)
     (api: string)
     (folderId: int)
     : HttpRequestMessage =
-    SynologyApi.createRequest
-        baseAddress
-        $"photo/webapi/entry.cgi/{api}"
-        (SynologyApi.createCommonFormUrlEncodedContentKeysAndValues api 1 "get" (Some sid)
-         @ [ ("api", api)
-             ("version", "1")
-             ("id", $"{folderId}") ])
+    SynologyApi.createRequest address $"photo/webapi/entry.cgi/{api}"
+    <| SynologyApi.createCommonFormUrlEncodedContentKeysAndValues api 1 "get" (Some sid)
+       @ [ ("api", api)
+           ("version", "1")
+           ("id", $"{folderId}") ]

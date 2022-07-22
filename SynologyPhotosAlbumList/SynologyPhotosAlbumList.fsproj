@@ -6,14 +6,18 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="ErrorResult.fs"/>
-        <Compile Include="Result.fs"/>
-        <Compile Include="Arguments.fs"/>
-        <Compile Include="SynologyApi.fs"/>
-        <Compile Include="AuthenticationApi.fs"/>
-        <Compile Include="PhotosApi.fs"/>
-        <Compile Include="ListAlbumCommand.fs"/>
-        <Compile Include="Program.fs"/>
+        <Compile Include="ErrorResult.fs" />
+        <Compile Include="Result.fs" />
+        <Compile Include="Arguments.fs" />
+        <Compile Include="SynologyApi.fs" />
+        <Compile Include="AuthenticationApi.fs" />
+        <Compile Include="PhotosApi.fs" />
+        <Compile Include="ListAlbumCommand.fs" />
+        <Compile Include="Program.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
     </ItemGroup>
 
 </Project>

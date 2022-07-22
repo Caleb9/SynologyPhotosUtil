@@ -54,13 +54,13 @@ let validateApiResponseDto
 type QueryParam = string * string
 
 let createRequest
-    (baseAddress: Uri)
+    (Arguments.Address address)
     (path: string)
-    (formUrlEncodedContentKeysAndValues: QueryParam list)
+    (formUrlEncodedContentKeysAndValues: QueryParam seq)
     : HttpRequestMessage =
     let requestUrl =
         let baseAddress, path =
-            baseAddress.AbsoluteUri.TrimEnd '/', path.Trim().TrimStart('/')
+            address.AbsoluteUri.TrimEnd '/', path.Trim().TrimStart('/')
 
         Uri $"{baseAddress}/{path}"
 

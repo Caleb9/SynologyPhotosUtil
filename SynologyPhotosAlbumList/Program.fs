@@ -1,27 +1,26 @@
 ﻿module SynologyPhotosAlbumList.Program
 
+open System
 open System.Net.Http
 open SynologyPhotosAlbumList
 
 type ErrorOutputAndExitCode = string * int
 
-let listPhotosInAlbum
+let execute
     (args: string array)
+    (executableName: string)
     (sendAsync: SynologyApi.SendRequest)
     : Async<Result<string, ErrorOutputAndExitCode>> =
 
     Arguments.parseArgs args
-    |> Result.bindSyncToAsync (fun arguments ->
-        AuthenticationApi.login sendAsync arguments
-        |> Result.bindAsyncToAsync (ListAlbumCommand.execute sendAsync arguments))
+    |> Result.bindSyncToAsync (fun command ->
+        match command with
+        | Arguments.Command.ListAlbum { Address=address; Credentials=credentials; AlbumName=albumName } ->
+            AuthenticationApi.login sendAsync address credentials
+            |> Result.bindAsyncToAsync (ListAlbumCommand.invoke sendAsync address albumName)
+        | Arguments.Command.Help -> async { return Ok <| Arguments.helpMessage executableName })
     |> Result.mapErrorAsyncToSync (function
-        | ErrorResult.InvalidArguments ->
-            sprintf
-                "%s\n%s\n%s"
-                "Supply the following arguments in this order:"
-                "synology_url album_name synology_username password otp_code"
-                "where the otp_code is optional",
-            1
+        | ErrorResult.InvalidArguments -> "Invalid arguments. Execute with --help option to see available arguments", 1
         | ErrorResult.InvalidUrl invalidUrl -> $"{invalidUrl} is not a valid URL", 2
         | ErrorResult.RequestFailed ex -> $"API request failed: {ex.Message}", 3
         | ErrorResult.InvalidHttpResponse (statusCode, reasonPhrase) ->
@@ -32,12 +31,15 @@ let listPhotosInAlbum
 [<EntryPoint>]
 let main args =
     async {
+        let executableName =
+            AppDomain.CurrentDomain.FriendlyName
+
         use httpClient = new HttpClient()
 
         let sendRequest request =
             httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead)
 
-        match! listPhotosInAlbum args sendRequest with
+        match! execute args executableName sendRequest with
         | Ok output ->
             printfn $"{output}"
             return 0

@@ -2,16 +2,21 @@ module SynologyPhotosAlbumList.ListAlbumCommand
 
 open System
 open System.Text
+open FSharp.Control
 open SynologyPhotosAlbumList
 
-let private searchForAlbumId
-    (sendAsync: SynologyApi.SendRequest)
-    ({ Url = url; AlbumName = albumName }: Arguments.T)
-    (sid: SynologyApi.SessionId)
-    =
+module private AsyncSeq =
+    let head (source: AsyncSeq<'T>) : Async<'T> =
+        async {
+            match! AsyncSeq.tryFirst source with
+            | Some t -> return t
+            | None -> return invalidArg (nameof source) "The input sequence was empty."
+        }
+
+let private searchForAlbumId sendAsync address (Arguments.AlbumName albumName) sid =
     let getOwnedAlbumsBatchApiResponseDtoResult offset =
         SynologyApi.sendRequest<SynologyApi.ApiResponseDto<PhotosApi.AlbumListDto>> sendAsync
-        <| fun () -> PhotosApi.createGetOwnedAlbumsRequest url sid offset
+        <| fun () -> PhotosApi.createGetOwnedAlbumsRequest address sid offset
 
     let validateAlbumsDto =
         SynologyApi.validateApiResponseDto "Getting album id"
@@ -26,8 +31,8 @@ let private searchForAlbumId
     let batchContainsAlbum =
         Seq.exists isSearchedAlbum
 
-    let isOkAndAlbumNotFoundAndNotLastBatch =
-        function
+    let isOkAndAlbumNotFoundAndNotLastBatch asyncResult =
+        match asyncResult with
         | Error _ -> false
         | Ok albumsBatch ->
             not
@@ -42,23 +47,15 @@ let private searchForAlbumId
         | Some album -> Ok album.Id
         | None -> Error <| ErrorResult.AlbumNotFound albumName
 
-    Seq.initInfinite getOwnedAlbumsBatchResult
-    |> Seq.skipWhile (
-        isOkAndAlbumNotFoundAndNotLastBatch
-        << Async.RunSynchronously
-    )
-    |> Seq.head
+    AsyncSeq.initInfiniteAsync (fun index -> getOwnedAlbumsBatchResult (int index))
+    |> AsyncSeq.skipWhile isOkAndAlbumNotFoundAndNotLastBatch
+    |> AsyncSeq.head
     |> Result.bindAsyncToSync extractIdOrError
 
-let private listAlbum
-    (sendAsync: SynologyApi.SendRequest)
-    ({ Url = url }: Arguments.T)
-    (sid: SynologyApi.SessionId)
-    (albumId: int)
-    : Async<Result<PhotosApi.PhotoDto list, ErrorResult>> =
+let private listAlbum sendAsync baseAddress sid albumId : Async<Result<PhotosApi.PhotoDto list, ErrorResult>> =
     let getPhotosBatchApiResponseDtoResult offset =
         SynologyApi.sendRequest<SynologyApi.ApiResponseDto<PhotosApi.PhotoListDto>> sendAsync
-        <| fun () -> PhotosApi.createListPhotosBatchRequest url sid albumId offset
+        <| fun () -> PhotosApi.createListPhotosBatchRequest baseAddress sid albumId offset
 
     let validateListPhotosDto =
         SynologyApi.validateApiResponseDto "Fetching album contents"
@@ -85,17 +82,12 @@ let private listAlbum
 
 type private ApiResponseFolderDto = SynologyApi.ApiResponseDto<{| Folder: PhotosApi.FolderDto |}>
 
-let private listFolders
-    (sendAsync: SynologyApi.SendRequest)
-    ({ Url = url }: Arguments.T)
-    (sid: SynologyApi.SessionId)
-    (photoDtos: PhotosApi.PhotoDto seq)
-    =
+let private listFolders sendAsync address sid (photoDtos: PhotosApi.PhotoDto seq) =
     let validateGetFolderDto =
         SynologyApi.validateApiResponseDto "Getting folder"
 
     let sendAndValidateGetFolderRequest api folderId =
-        fun () -> PhotosApi.createGetFolderRequest url sid api folderId
+        fun () -> PhotosApi.createGetFolderRequest address sid api folderId
         |> SynologyApi.sendRequest<ApiResponseFolderDto> sendAsync
         |> Result.bindAsyncToSync validateGetFolderDto
 
@@ -107,14 +99,13 @@ let private listFolders
 
     let getFolder folderId : Async<int * Result<PhotosApi.FolderDto, ErrorResult>> =
         async {
-            let! privateSpaceFolderResult = getPrivateSpaceFolder folderId
-
-            let getFolderResult =
-                match privateSpaceFolderResult with
-                | Error (ErrorResult.InvalidApiResponse (_, code)) when code = PhotosApi.inaccessibleFolderErrorCode ->
-                    getSharedSpaceFolder folderId
-                    |> Async.RunSynchronously
-                | successOrOtherError -> successOrOtherError
+            let! getFolderResult =
+                async {
+                    match! getPrivateSpaceFolder folderId with
+                    | Error (ErrorResult.InvalidApiResponse (_, code)) when code = PhotosApi.inaccessibleFolderErrorCode ->
+                        return! getSharedSpaceFolder folderId
+                    | successOrOtherError -> return successOrOtherError
+                }
 
             return
                 (folderId,
@@ -143,9 +134,10 @@ let private listFolders
             |> Seq.map (fun photoDto -> photoDto, findFolderResult photoDto)
     }
 
-let execute
+let invoke
     (sendAsync: SynologyApi.SendRequest)
-    (arguments: Arguments.T)
+    (address: Arguments.Address)
+    (albumName: Arguments.AlbumName)
     (sid: SynologyApi.SessionId)
     : Async<Result<string, ErrorResult>> =
     let selectNamesFromListFolderResult
@@ -176,9 +168,9 @@ let execute
                $"ERROR: %s{photoName} folder inaccessible"
            | Error error -> $"ERROR: Fetching folder for %s{photoName} resulted in %A{error}"
 
-    searchForAlbumId sendAsync arguments sid
-    |> Result.bindAsyncToAsync (listAlbum sendAsync arguments sid)
-    |> Result.mapAsyncToAsync (listFolders sendAsync arguments sid)
+    searchForAlbumId sendAsync address albumName sid
+    |> Result.bindAsyncToAsync (listAlbum sendAsync address sid)
+    |> Result.mapAsyncToAsync (listFolders sendAsync address sid)
     |> Result.mapAsyncToSync (Seq.map selectNamesFromListFolderResult)
     |> Result.mapAsyncToSync (
         Seq.sortBy resultAndThenPhotoNamePrecedence
