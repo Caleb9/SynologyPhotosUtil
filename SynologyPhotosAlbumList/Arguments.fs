@@ -3,7 +3,7 @@ module SynologyPhotosAlbumList.Arguments
 open System
 open SynologyPhotosAlbumList
 
-let helpMessage (executableName: string) =
+let internal helpMessage (executableName: string) =
     $"""Usage: %s{executableName} [options] [command] [command-arguments] [options]
 
 Global options:

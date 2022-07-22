@@ -1,4 +1,4 @@
-module SynologyPhotosAlbumList.ListAlbumCommand
+module private SynologyPhotosAlbumList.ListAlbumCommand
 
 open System
 open System.Text
@@ -97,6 +97,11 @@ let private listFolders sendAsync address sid (photoDtos: PhotosApi.PhotoDto seq
     let getSharedSpaceFolder =
         sendAndValidateGetFolderRequest "SYNO.FotoTeam.Browse.Folder"
 
+    let extractFolderDtoFromApiResponse ({ Data = dataDto }: ApiResponseFolderDto) : PhotosApi.FolderDto =
+        match dataDto with
+        | Some data -> data.Folder
+        | None -> invalidArg (nameof dataDto) "Unexpected data received"
+
     let getFolder folderId : Async<int * Result<PhotosApi.FolderDto, ErrorResult>> =
         async {
             let! getFolderResult =
@@ -106,13 +111,9 @@ let private listFolders sendAsync address sid (photoDtos: PhotosApi.PhotoDto seq
                         return! getSharedSpaceFolder folderId
                     | successOrOtherError -> return successOrOtherError
                 }
+                |> Result.mapAsyncToSync extractFolderDtoFromApiResponse
 
-            return
-                (folderId,
-                 getFolderResult
-                 |> Result.map
-                     (fun ({ Data = dataResult }: SynologyApi.ApiResponseDto<{| Folder: PhotosApi.FolderDto |}>) ->
-                         dataResult.Value.Folder))
+            return (folderId, getFolderResult)
         }
 
     let maxDegreeOfParallelism = 8
@@ -134,7 +135,7 @@ let private listFolders sendAsync address sid (photoDtos: PhotosApi.PhotoDto seq
             |> Seq.map (fun photoDto -> photoDto, findFolderResult photoDto)
     }
 
-let invoke
+let internal invoke
     (sendAsync: SynologyApi.SendRequest)
     (address: Arguments.Address)
     (albumName: Arguments.AlbumName)

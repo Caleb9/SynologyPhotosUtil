@@ -4,9 +4,9 @@ open System
 open System.Net.Http
 open SynologyPhotosAlbumList
 
-type ErrorOutputAndExitCode = string * int
+type private ErrorOutputAndExitCode = string * int
 
-let execute
+let public execute
     (args: string array)
     (executableName: string)
     (sendAsync: SynologyApi.SendRequest)
@@ -29,7 +29,7 @@ let execute
         | ErrorResult.AlbumNotFound albumName -> $"Album \"{albumName}\" not found in owned albums", 6)
 
 [<EntryPoint>]
-let main args =
+let internal main args =
     async {
         let executableName =
             AppDomain.CurrentDomain.FriendlyName

@@ -2,7 +2,7 @@ module SynologyPhotosAlbumList.AuthenticationApi
 
 open SynologyPhotosAlbumList
 
-type LoginDto = (* cannot be private, otherwise JSON deserializer crashes *) { Sid: string }
+type public LoginDto = (* cannot be private, otherwise JSON deserializer crashes *) { Sid: string }
 
 let private createLoginRequest
     address
@@ -22,7 +22,7 @@ let private createLoginRequest
 
     SynologyApi.createRequest address "photo/webapi/entry.cgi" (queryParams @ otpCode)
 
-let login
+let internal login
     (sendAsync: SynologyApi.SendRequest)
     (address: Arguments.Address)
     (credentials: Arguments.Credentials)

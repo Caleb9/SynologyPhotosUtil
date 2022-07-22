@@ -3,22 +3,22 @@ module SynologyPhotosAlbumList.PhotosApi
 open System.Net.Http
 open SynologyPhotosAlbumList
 
-type AlbumDto = { Id: int; Name: string }
+type public AlbumDto = { Id: int; Name: string }
 
-type ListDto<'TItem> = { List: 'TItem list }
-type AlbumListDto = ListDto<AlbumDto>
+type public ListDto<'TItem> = { List: 'TItem list }
+type internal AlbumListDto = ListDto<AlbumDto>
 
-let extractDataListFromResponseDto (dto: SynologyApi.ApiResponseDto<ListDto<'a>>) : 'a list =
+let internal extractDataListFromResponseDto (dto: SynologyApi.ApiResponseDto<ListDto<'a>>) : 'a list =
     let { List = dataList } =
         SynologyApi.getDataFromResponseDto dto
 
     dataList
 
-let dataListBatchSize = 100
+let internal dataListBatchSize = 100
 
-let isLastBatch batch = Seq.length batch < dataListBatchSize
+let internal isLastBatch batch = Seq.length batch < dataListBatchSize
 
-let createGetOwnedAlbumsRequest
+let internal createGetOwnedAlbumsRequest
     (address: Arguments.Address)
     (sid: SynologyApi.SessionId)
     (offset: int)
@@ -30,15 +30,15 @@ let createGetOwnedAlbumsRequest
            ("sort_by", "album_name")
            ("sort_direction", "asc") ]
 
-type PhotoDto =
+type public PhotoDto =
     { Id: int
       Owner_user_id: int
       Folder_id: int
       Filename: string }
 
-type PhotoListDto = ListDto<PhotoDto>
+type internal PhotoListDto = ListDto<PhotoDto>
 
-let createListPhotosBatchRequest
+let internal createListPhotosBatchRequest
     (address: Arguments.Address)
     (sid: SynologyApi.SessionId)
     (albumId: int)
@@ -52,11 +52,11 @@ let createListPhotosBatchRequest
            ("sort_by", "filename")
            ("sort_direction", "asc") ]
 
-type FolderDto = { Id: int; Name: string }
+type public FolderDto = { Id: int; Name: string }
 
-let inaccessibleFolderErrorCode = 642
+let internal inaccessibleFolderErrorCode = 642
 
-let createGetFolderRequest
+let internal createGetFolderRequest
     (address: Arguments.Address)
     (sid: SynologyApi.SessionId)
     (api: string)

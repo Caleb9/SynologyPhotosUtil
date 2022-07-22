@@ -1,6 +1,6 @@
-module SynologyPhotosAlbumList.Result
+module private SynologyPhotosAlbumList.Result
 
-let bindSyncToAsync
+let internal bindSyncToAsync
     (asyncBinder: 'T1 -> Async<Result<'T2, 'TError>>)
     (asyncResult: Result<'T1, 'TError>)
     : Async<Result<'T2, 'TError>> =
@@ -10,7 +10,7 @@ let bindSyncToAsync
         | Error e -> return Error e
     }
 
-let bindAsyncToAsync
+let internal bindAsyncToAsync
     (asyncBinder: 'T1 -> Async<Result<'T2, 'TError>>)
     (asyncResult: Async<Result<'T1, 'TError>>)
     : Async<Result<'T2, 'TError>> =
@@ -20,7 +20,7 @@ let bindAsyncToAsync
         | Error e -> return Error e
     }
 
-let bindAsyncToSync
+let internal bindAsyncToSync
     (binder: 'T1 -> Result<'T2, 'TError>)
     (asyncResult: Async<Result<'T1, 'TError>>)
     : Async<Result<'T2, 'TError>> =
@@ -29,7 +29,7 @@ let bindAsyncToSync
         return Result.bind binder result
     }
 
-let mapAsyncToAsync
+let internal mapAsyncToAsync
     (asyncMapping: 'T -> Async<'U>)
     (asyncResult: Async<Result<'T, 'TError>>)
     : Async<Result<'U, 'TError>> =
@@ -41,13 +41,13 @@ let mapAsyncToAsync
         | Error e -> return Error e
     }
 
-let mapAsyncToSync (mapping: 'T -> 'U) (asyncResult: Async<Result<'T, 'TError>>) : Async<Result<'U, 'TError>> =
+let internal mapAsyncToSync (mapping: 'T -> 'U) (asyncResult: Async<Result<'T, 'TError>>) : Async<Result<'U, 'TError>> =
     async {
         let! result = asyncResult
         return Result.map mapping result
     }
 
-let mapErrorAsyncToSync (mapping: 'TError -> 'U) (asyncResult: Async<Result<'T, 'TError>>) : Async<Result<'T, 'U>> =
+let internal mapErrorAsyncToSync (mapping: 'TError -> 'U) (asyncResult: Async<Result<'T, 'TError>>) : Async<Result<'T, 'U>> =
     async {
         let! result = asyncResult
         return Result.mapError mapping result

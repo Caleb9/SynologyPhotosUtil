@@ -7,40 +7,38 @@ open System.Net.Http.Json
 open System.Threading.Tasks
 open SynologyPhotosAlbumList
 
-type SendRequest = HttpRequestMessage -> Task<HttpResponseMessage>
+type internal SendRequest = HttpRequestMessage -> Task<HttpResponseMessage>
 
 type private CreateRequest = unit -> HttpRequestMessage
 
-let sendRequest<'TResponseDto>
+let internal sendRequest<'TResponseDto>
     (sendAsync: SendRequest)
     (createRequest: CreateRequest)
     : Async<Result<'TResponseDto, ErrorResult>> =
-    let sendRequest' =
-        task {
-            try
-                use request = createRequest ()
-                use! response = sendAsync request
+    Async.AwaitTask
+    <| task {
+        try
+            use request = createRequest ()
+            use! response = sendAsync request
 
-                match response.IsSuccessStatusCode with
-                | true ->
-                    let! dto = HttpContentJsonExtensions.ReadFromJsonAsync<'TResponseDto> response.Content
-                    return Ok dto
-                | false ->
-                    return
-                        Error
-                        <| ErrorResult.InvalidHttpResponse(response.StatusCode, response.ReasonPhrase)
-            with
-            | :? HttpRequestException as ex -> return Error <| ErrorResult.RequestFailed ex
-        }
+            match response.IsSuccessStatusCode with
+            | true ->
+                let! dto = HttpContentJsonExtensions.ReadFromJsonAsync<'TResponseDto> response.Content
+                return Ok dto
+            | false ->
+                return
+                    Error
+                    <| ErrorResult.InvalidHttpResponse(response.StatusCode, response.ReasonPhrase)
+        with
+        | :? HttpRequestException as ex -> return Error <| ErrorResult.RequestFailed ex
+    }
 
-    sendRequest' |> Async.AwaitTask
-
-type ApiResponseDto<'TData> =
+type public ApiResponseDto<'TData> =
     { Success: bool
       Error: {| Code: int |} option
       Data: 'TData option }
 
-let validateApiResponseDto
+let internal validateApiResponseDto
     (requestType: string)
     (dto: ApiResponseDto<'TData>)
     : Result<ApiResponseDto<'TData>, ErrorResult> =
@@ -51,9 +49,9 @@ let validateApiResponseDto
         <| ErrorResult.InvalidApiResponse(requestType, errorDto.Code)
     | _ -> invalidArg (nameof dto) "Unexpected data received"
 
-type QueryParam = string * string
+type private QueryParam = string * string
 
-let createRequest
+let internal createRequest
     (Arguments.Address address)
     (path: string)
     (formUrlEncodedContentKeysAndValues: QueryParam seq)
@@ -72,9 +70,9 @@ let createRequest
         Content = new FormUrlEncodedContent(Seq.map toKeyValuePair formUrlEncodedContentKeysAndValues)
     )
 
-type SessionId = SessionId of string
+type internal SessionId = SessionId of string
 
-let createCommonFormUrlEncodedContentKeysAndValues
+let internal createCommonFormUrlEncodedContentKeysAndValues
     (api: string)
     (version: int)
     (method: string)
@@ -88,7 +86,7 @@ let createCommonFormUrlEncodedContentKeysAndValues
     | Some (SessionId sid) -> ("_sid", sid) :: queryParams
     | None -> queryParams
 
-let getDataFromResponseDto: ApiResponseDto<'a> -> 'a =
+let internal getDataFromResponseDto: ApiResponseDto<'a> -> 'a =
     function
     | { Data = Some data } -> data
-    | _ -> invalidArg (nameof ApiResponseDto) "Unexpected data"
+    | _ -> invalidArg (nameof ApiResponseDto) "Unexpected data received"
