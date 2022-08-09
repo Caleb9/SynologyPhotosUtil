@@ -71,20 +71,19 @@ many photos are added to "My Album", querying the API can take a
 moment. The output can for example look like this:
 
 ```
-/personal_space_folder/my_photos/IMG_1111.jpg
-/shared_space_folder/IMG_2222.JPG
+P: /personal_space_folder/my_photos/IMG_1111.jpg
+S: /shared_space_folder/IMG_2222.JPG
 ERROR: IMG_3333.jpeg folder inaccessible
 ```
 
 In this case "My Album" contains 3 photos:
-* The the IMG\_1111.jpg photo is located in one of the user's "personal
-  space" folders, i.e. (by default) under `{your user's home
-  directory}/Photos` in a `personal_space_folder/my_photos` folder.
-* The IMG\_2222.JPG photo is located in "shared space", i.e. under
-  `photo` shared folder in `shared_space_folder` (note: the
-  distinction between shared and personal space folders in the output
-  is a TODO for now - for my own use case the difference is obvious
-  thanks to the folder structure).
+* The the IMG\_1111.jpg photo is located in one of the user's
+  "personal space" folders (indicated by leading "P"), i.e. (by
+  default) under `{your user's home directory}/Photos` in a
+  `personal_space_folder/my_photos` folder.
+* The IMG\_2222.JPG photo is located in "shared space" (indicated by
+  leading "S"), i.e. under `photo` shared folder in
+  `shared_space_folder`.
 * In case of IMG\_3333.jpeg the physical location of the file is
   inaccessible for my\_user. This happens e.g. when there are other
   NAS users having *provider* access to "My Album" and they added
@@ -95,7 +94,6 @@ In this case "My Album" contains 3 photos:
 ## TODO
 
 * Query albums that user is not owner of, but has access to
-* Indicate if folder is in personal or shared space in the output
 * Add add-photo-to-album command
 
 

@@ -131,7 +131,8 @@ let ``Full sunshine scenario: list album containing 3 photos`` () =
                                Data =
                                 {| Folder =
                                     {| Id = 3
-                                       Name = "/c/private/folder1" |} |} |}
+                                       Name = "/c/private/folder1"
+                                       Shared = false |} |} |}
                     | getPersonalSpaceFolderForPhoto2 when
                         getPersonalSpaceFolderForPhoto2
                         |> matches
@@ -187,7 +188,11 @@ let ``Full sunshine scenario: list album containing 3 photos`` () =
                         ->
                         createResponseWithJsonContent
                             {| Success = true
-                               Data = {| Folder = {| Id = 9; Name = "/b/shared/folder2" |} |} |}
+                               Data =
+                                {| Folder =
+                                    {| Id = 9
+                                       Name = "/b/shared/folder2"
+                                       Shared = true |} |} |}
                     | missingSetup ->
                         failwith
                         <| $"Unexpected request received:\n%A{missingSetup}\n"
@@ -205,8 +210,8 @@ let ``Full sunshine scenario: list album containing 3 photos`` () =
                 equal
                 (sprintf
                     "%s\n%s\n%s\n"
-                    "/b/shared/folder2/photo3"
-                    "/c/private/folder1/photo1"
+                    "S: /b/shared/folder2/photo3"
+                    "P: /c/private/folder1/photo1"
                     "ERROR: photo2 folder inaccessible")
         | Error _ ->
             actualResult

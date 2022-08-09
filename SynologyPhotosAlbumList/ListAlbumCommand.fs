@@ -141,30 +141,31 @@ let internal invoke
     (albumName: Arguments.AlbumName)
     (sid: SynologyApi.SessionId)
     : Async<Result<string, ErrorResult>> =
-    let selectNamesFromListFolderResult
+
+    let resultAndThenPhotoNamePrecedence
         (
-            { Filename = filename }: PhotosApi.PhotoDto,
-            folderResult: Result<PhotosApi.FolderDto, _>
+            { Filename = photo }: PhotosApi.PhotoDto,
+            folderResult: Result<PhotosApi.FolderDto, ErrorResult>
         ) =
-        let folderNameResult =
-            folderResult
-            |> Result.map (fun { Name = folderName } -> folderName)
+        match folderResult with
+        | Ok { Name = folder } -> $"0{folder}{photo}"
+        | Error _ -> $"1{photo}"
 
-        filename, folderNameResult
-
-    let resultAndThenPhotoNamePrecedence (photoName, folderNameResult) =
-        match folderNameResult with
-        | Ok folder -> $"0{folder}{photoName}"
-        | Error photo -> $"1{photo}"
-
-    let buildOutput (stringBuilder: StringBuilder) (photoName, folderNameResult) =
+    let buildOutput
+        (stringBuilder: StringBuilder)
+        ({ Filename = photoName }: PhotosApi.PhotoDto, folderResult: Result<PhotosApi.FolderDto, ErrorResult>)
+        =
         let printToStringBuilder line =
             Printf.bprintf stringBuilder $"{line}{Environment.NewLine}"
             stringBuilder
 
         printToStringBuilder
-        <| match folderNameResult with
-           | Ok folder -> $"%s{folder}/%s{photoName}"
+        <| match folderResult with
+           | Ok { Name = name; Shared = shared } ->
+               if shared then
+                   $"S: %s{name}/%s{photoName}"
+               else
+                   $"P: %s{name}/%s{photoName}"
            | Error (InvalidApiResponse (_, code)) when code = PhotosApi.inaccessibleFolderErrorCode ->
                $"ERROR: %s{photoName} folder inaccessible"
            | Error error -> $"ERROR: Fetching folder for %s{photoName} resulted in %A{error}"
@@ -172,7 +173,6 @@ let internal invoke
     searchForAlbumId sendAsync address albumName sid
     |> Result.bindAsyncToAsync (listAlbum sendAsync address sid)
     |> Result.mapAsyncToAsync (listFolders sendAsync address sid)
-    |> Result.mapAsyncToSync (Seq.map selectNamesFromListFolderResult)
     |> Result.mapAsyncToSync (
         Seq.sortBy resultAndThenPhotoNamePrecedence
         >> Seq.fold buildOutput (StringBuilder())

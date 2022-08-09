@@ -52,7 +52,7 @@ let internal createListPhotosBatchRequest
            ("sort_by", "filename")
            ("sort_direction", "asc") ]
 
-type public FolderDto = { Id: int; Name: string }
+type public FolderDto = { Id: int; Name: string; Shared: bool }
 
 let internal inaccessibleFolderErrorCode = 642
 
