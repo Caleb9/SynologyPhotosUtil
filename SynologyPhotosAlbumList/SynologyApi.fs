@@ -4,6 +4,7 @@ open System
 open System.Collections.Generic
 open System.Net.Http
 open System.Net.Http.Json
+open System.Text.Json
 open System.Threading.Tasks
 open SynologyPhotosAlbumList
 
@@ -24,6 +25,11 @@ let internal sendRequest<'TResponseDto>
             match response.IsSuccessStatusCode with
             | true ->
                 let! dto = HttpContentJsonExtensions.ReadFromJsonAsync<'TResponseDto> response.Content
+                // let! dtoString = response.Content.ReadAsStringAsync()
+                // let dto =
+                //     JsonSerializer.Deserialize(
+                //         dtoString,
+                //         JsonSerializerOptions(PropertyNameCaseInsensitive = true));
                 return Ok dto
             | false ->
                 return

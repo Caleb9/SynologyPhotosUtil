@@ -18,6 +18,7 @@
 
     <ItemGroup>
       <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
+      <PackageReference Update="FSharp.Core" Version="7.0.0" />
     </ItemGroup>
 
 </Project>
