@@ -41,7 +41,7 @@ let ``Valid list command with verbose arguments`` () =
     |> Arguments.parseArgs
     |> assertOkCommand
     <| Arguments.Command.ListAlbum
-        { Address = Arguments.Address(Uri("http://some.address"))
+        { Address = Arguments.Address(Uri("http://some.address:5000"))
           Credentials =
             { Account = Arguments.Account "my_user"
               Password = Arguments.Password "my_password"
@@ -63,7 +63,7 @@ let ``Valid list command with non-verbose arguments`` () =
     |> Arguments.parseArgs
     |> assertOkCommand
     <| Arguments.Command.ListAlbum
-        { Address = Arguments.Address(Uri("http://some.address"))
+        { Address = Arguments.Address(Uri("http://some.address:5000"))
           Credentials =
             { Account = Arguments.Account "my_user"
               Password = Arguments.Password "my_password"
@@ -85,7 +85,7 @@ let ``Valid list command with mixed-verbosity arguments`` () =
     |> Arguments.parseArgs
     |> assertOkCommand
     <| Arguments.Command.ListAlbum
-        { Address = Arguments.Address(Uri("http://some.address"))
+        { Address = Arguments.Address(Uri("http://some.address:5000"))
           Credentials =
             { Account = Arguments.Account "my_user"
               Password = Arguments.Password "my_password"
@@ -107,7 +107,7 @@ let ``Valid list command when command is first`` () =
     |> Arguments.parseArgs
     |> assertOkCommand
     <| Arguments.Command.ListAlbum
-        { Address = Arguments.Address(Uri("http://some.address"))
+        { Address = Arguments.Address(Uri("http://some.address:5000"))
           Credentials =
             { Account = Arguments.Account "my_user"
               Password = Arguments.Password "my_password"
@@ -127,7 +127,7 @@ let ``Valid list command without OTP`` () =
     |> Arguments.parseArgs
     |> assertOkCommand
     <| Arguments.Command.ListAlbum
-        { Address = Arguments.Address(Uri("http://some.address"))
+        { Address = Arguments.Address(Uri("http://some.address:5000"))
           Credentials =
             { Account = Arguments.Account "my_user"
               Password = Arguments.Password "my_password"
@@ -171,6 +171,100 @@ let ``When list option with invalid URL, ErrorResult.InvalidUrl is returned`` ()
     |> Arguments.parseArgs
     |> assertErrorResult
     <| ErrorResult.InvalidUrl "NOT A URL"
+
+[<Fact>]
+let ``When address is HTTP without port, port 5000 is used`` () =
+    [| "-a"
+       "http://some.address/"
+       "-u"
+       "my_user"
+       "-p"
+       "my_password"
+       "list"
+       "My Album" |]
+    |> Arguments.parseArgs
+    |> assertOkCommand
+    <| Arguments.Command.ListAlbum
+        { Address = Arguments.Address(Uri("http://some.address:5000"))
+          Credentials =
+            { Account = Arguments.Account "my_user"
+              Password = Arguments.Password "my_password"
+              Otp = None }
+          AlbumName = Arguments.AlbumName "My Album" }
+
+[<Fact>]
+let ``When address is HTTPS without port, port 5001 is used`` () =
+    [| "-a"
+       "https://some.address/"
+       "-u"
+       "my_user"
+       "-p"
+       "my_password"
+       "list"
+       "My Album" |]
+    |> Arguments.parseArgs
+    |> assertOkCommand
+    <| Arguments.Command.ListAlbum
+        { Address = Arguments.Address(Uri("https://some.address:5001"))
+          Credentials =
+            { Account = Arguments.Account "my_user"
+              Password = Arguments.Password "my_password"
+              Otp = None }
+          AlbumName = Arguments.AlbumName "My Album" }
+
+[<Fact>]
+let ``When address is without port and contains path, path is preserved`` () =
+    [| "-a"
+       "https://some.address/some/path"
+       "-u"
+       "my_user"
+       "-p"
+       "my_password"
+       "list"
+       "My Album" |]
+    |> Arguments.parseArgs
+    |> assertOkCommand
+    <| Arguments.Command.ListAlbum
+        { Address = Arguments.Address(Uri("https://some.address:5001/some/path"))
+          Credentials =
+            { Account = Arguments.Account "my_user"
+              Password = Arguments.Password "my_password"
+              Otp = None }
+          AlbumName = Arguments.AlbumName "My Album" }
+
+[<Fact>]
+let ``When address contains port, port is not changed`` () =
+    [| "-a"
+       "https://some.address:42/"
+       "-u"
+       "my_user"
+       "-p"
+       "my_password"
+       "list"
+       "My Album" |]
+    |> Arguments.parseArgs
+    |> assertOkCommand
+    <| Arguments.Command.ListAlbum
+        { Address = Arguments.Address(Uri("https://some.address:42"))
+          Credentials =
+            { Account = Arguments.Account "my_user"
+              Password = Arguments.Password "my_password"
+              Otp = None }
+          AlbumName = Arguments.AlbumName "My Album" }
+
+[<Fact>]
+let ``When address scheme is not HTTP or HTTPS, ErrorResult.InvalidUrl is returned`` () =
+    [| "-a"
+       "ftp://some.address/"
+       "-u"
+       "my_user"
+       "-p"
+       "my_password"
+       "list"
+       "My Album" |]
+    |> Arguments.parseArgs
+    |> assertErrorResult
+    <| ErrorResult.InvalidUrl "ftp://some.address/"
 
 [<Fact>]
 let ``When command is missing, ErrorResult.InvalidArguments is returned`` () =

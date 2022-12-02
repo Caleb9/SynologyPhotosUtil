@@ -30,15 +30,14 @@ arguments:
 ```
 Global options:
     -h, --help                  Prints this message
-    -v, --version               Prints version information
 
 Commands:
     list <ALBUM-NAME>           List photos in album
     
 Common command options (available for all commands):
-    -a, --address <URL>         [REQUIRED] URL address of Synology DiskStation
-    -u, --user <USER-NAME>      [REQUIRED] DiskStation user account name
-    -p, --password <PASSWORD>   [REQUIRED] DiskStation user account password
+    -a, --address <URL>         [REQUIRED] HTTP(S) address of Synology DSM
+    -u, --user <USER-NAME>      [REQUIRED] DSM user account name
+    -p, --password <PASSWORD>   [REQUIRED] DSM user account password
     -o, --otp <OTP-CODE>        OTP code when 2FA is enabled for user account
 ```
 
@@ -57,6 +56,11 @@ application in a following way:
 ```
 dotnet run -- list "My Album" -a http://diskstation.address -u my_user -p my_password
 ```
+
+**Note**: The address value should be the same as the one you use to
+open DSM in your browser. Unless you use non-standard ports (5000 for
+HTTP and 5001 for HTTPS), you can omit the port, otherwise it needs to
+be specified e.g. http://diskstation.address:5042.
 
 Alternatively, if your account has two factor authentication enabled,
 you must also provide a one time code from your authenticator app as
@@ -95,6 +99,8 @@ In this case "My Album" contains 3 photos:
 
 * Query albums that user is not owner of, but has access to
 * Add add-photo-to-album command
+* Add optional debug information
+* Add export to Synology Photos folder command
 
 
 ## Code disclaimer

@@ -2,6 +2,7 @@
 
 open System
 open System.Net.Http
+open Microsoft.Extensions.Logging
 open SynologyPhotosAlbumList
 
 type private ErrorOutputAndExitCode = string * int
@@ -10,12 +11,24 @@ let public execute
     (args: string array)
     (executableName: string)
     (sendAsync: SynologyApi.SendRequest)
+    (logger: ILogger)
     : Async<Result<string, ErrorOutputAndExitCode>> =
+
+    (* TODO conditionally enable this *)
+    let sendAsyncWithLogger request =
+        task {
+            logger.LogDebug(request.ToString())
+            let! response = sendAsync request
+            logger.LogDebug(response.ToString())
+            return response
+        }
 
     Arguments.parseArgs args
     |> Result.bindSyncToAsync (fun command ->
         match command with
-        | Arguments.Command.ListAlbum { Address=address; Credentials=credentials; AlbumName=albumName } ->
+        | Arguments.Command.ListAlbum { Address = address
+                                        Credentials = credentials
+                                        AlbumName = albumName } ->
             AuthenticationApi.login sendAsync address credentials
             |> Result.bindAsyncToAsync (ListAlbumCommand.invoke sendAsync address albumName)
         | Arguments.Command.Help -> async { return Ok <| Arguments.helpMessage executableName })
@@ -39,7 +52,17 @@ let internal main args =
         let sendRequest request =
             httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead)
 
-        match! execute args executableName sendRequest with
+        use loggerFactory =
+            LoggerFactory.Create (fun builder ->
+                builder
+                    .SetMinimumLevel(LogLevel.Debug)
+                    .AddSimpleConsole()
+                |> ignore)
+
+        let logger =
+            loggerFactory.CreateLogger executableName
+
+        match! execute args executableName sendRequest logger with
         | Ok output ->
             printfn $"{output}"
             return 0

@@ -1,6 +1,7 @@
 module SynologyPhotosAlbumList.Arguments
 
 open System
+open System.Text.RegularExpressions
 open SynologyPhotosAlbumList
 
 let internal helpMessage (executableName: string) =
@@ -8,15 +9,14 @@ let internal helpMessage (executableName: string) =
 
 Global options:
     -h, --help                  Prints this message
-    -v, --version               Prints version information
 
 Commands:
     list <ALBUM-NAME>           List photos in album
     
 Common command options (available for all commands):
-    -a, --address <URL>         [REQUIRED] URL address of Synology DiskStation
-    -u, --user <USER-NAME>      [REQUIRED] DiskStation user account name
-    -p, --password <PASSWORD>   [REQUIRED] DiskStation user account password
+    -a, --address <URL>         [REQUIRED] HTTP(S) address of Synology DSM
+    -u, --user <USER-NAME>      [REQUIRED] DSM user account name
+    -p, --password <PASSWORD>   [REQUIRED] DSM user account password
     -o, --otp <OTP-CODE>        OTP code when 2FA is enabled for user account
 
 Examples:
@@ -24,9 +24,13 @@ Examples:
 
         %s{executableName} list ""My album"" --address http://my.ds.nas --user my_user --password my_password
 
-      or with OTP code if my_user account needs two factor authentication
+      With OTP code if my_user account needs two factor authentication
       
         %s{executableName} list ""My album"" --address http://my.ds.nas --user my_user --password my_password --otp 123456
+
+      When DSM uses non-standard port number (not 5000 for HTTP or 5001 for HTTPS)
+
+        %s{executableName} list ""My album"" --address http://my.ds.nas:8000 --user my_user --password my_password
 """
 
 type Account = Account of string
@@ -71,6 +75,31 @@ let private mapArgumentsToCommands =
         | true, uri -> Ok uri
         | false, _ -> Error <| ErrorResult.InvalidUrl urlString
 
+    let validateUrlSchemeIsHttpOrHttps (url: Uri) =
+        match url.Scheme with
+        | scheme when scheme = Uri.UriSchemeHttp
+            || scheme = Uri.UriSchemeHttps
+            ->
+            Ok url
+        | _ -> Error <| ErrorResult.InvalidUrl url.OriginalString
+
+    let setPort (url: Uri) =
+        let isSpecified =
+            Regex.IsMatch(url.OriginalString, ":\d+")
+
+        match isSpecified with
+        | false ->
+            let port =
+                match url.Scheme with
+                | scheme when scheme = Uri.UriSchemeHttp -> 5000
+                | scheme when scheme = Uri.UriSchemeHttps -> 5001
+                | _ -> invalidOp "Unreachable code"
+
+            let builder = UriBuilder(url)
+            builder.Port <- port
+            builder.Uri
+        | true -> url
+
     function
     | { Help = Some () } -> Ok Help
     | { ListAlbumCommand = Some albumName
@@ -79,6 +108,8 @@ let private mapArgumentsToCommands =
         Password = Some password
         Otp = otp } ->
         parseUrl urlString
+        |> Result.bind validateUrlSchemeIsHttpOrHttps
+        |> Result.map setPort
         |> Result.map (fun url ->
             Command.ListAlbum
                 { Address = Address url

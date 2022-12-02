@@ -20,7 +20,7 @@ let private createLoginRequest
         | Some (Arguments.Otp code) -> [ ("otp_code", code) ]
         | None -> []
 
-    SynologyApi.createRequest address "photo/webapi/entry.cgi" (queryParams @ otpCode)
+    SynologyApi.createRequest address "webapi/entry.cgi" (queryParams @ otpCode)
 
 let internal login
     (sendAsync: SynologyApi.SendRequest)

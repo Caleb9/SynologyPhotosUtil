@@ -1,8 +1,10 @@
 module Tests.FullTests
 
+open System
 open System.Net.Http
 open System.Net.Http.Json
 open System.Text.RegularExpressions
+open Microsoft.Extensions.Logging
 open SynologyPhotosAlbumList
 open Xunit
 open FsUnit
@@ -16,6 +18,12 @@ let private matches absoluteUri (actualContentString: string) expectedContentPar
 
 let private createResponseWithJsonContent content =
     new HttpResponseMessage(Content = JsonContent.Create(content))
+
+let private fakeLogger =
+    { new ILogger with
+        member _.IsEnabled _ = false
+        member _.Log(_, _, _, _, _: Func<'T, exn, string>) = ()
+        member _.BeginScope _ = null }
 
 [<Fact>]
 let ``Full sunshine scenario: list album containing 3 photos`` () =
@@ -44,7 +52,7 @@ let ``Full sunshine scenario: list album containing 3 photos`` () =
                     | login when
                         login
                         |> matches
-                            "http://ds.address/photo/webapi/entry.cgi"
+                            "http://ds.address:5000/webapi/entry.cgi"
                             actualContentString
                             [ "api=SYNO.API.Auth"
                               "version=7"
@@ -59,7 +67,7 @@ let ``Full sunshine scenario: list album containing 3 photos`` () =
                     | getFirstBatchOfAlbums when
                         getFirstBatchOfAlbums
                         |> matches
-                            "http://ds.address/photo/webapi/entry.cgi/SYNO.Foto.Browse.Album"
+                            "http://ds.address:5000/webapi/entry.cgi/SYNO.Foto.Browse.Album"
                             actualContentString
                             [ "_sid=fake_sid"
                               "api=SYNO.Foto.Browse.Album"
@@ -74,7 +82,7 @@ let ``Full sunshine scenario: list album containing 3 photos`` () =
                     | getSecondBatchOfAlbums when
                         getSecondBatchOfAlbums
                         |> matches
-                            "http://ds.address/photo/webapi/entry.cgi/SYNO.Foto.Browse.Album"
+                            "http://ds.address:5000/webapi/entry.cgi/SYNO.Foto.Browse.Album"
                             actualContentString
                             [ "_sid=fake_sid"
                               "api=SYNO.Foto.Browse.Album"
@@ -89,7 +97,7 @@ let ``Full sunshine scenario: list album containing 3 photos`` () =
                     | getPhotosInAlbum when
                         getPhotosInAlbum
                         |> matches (* first batch of photos *)
-                            "http://ds.address/photo/webapi/entry.cgi"
+                            "http://ds.address:5000/webapi/entry.cgi"
                             actualContentString
                             [ "_sid=fake_sid"
                               "album_id=42"
@@ -118,7 +126,7 @@ let ``Full sunshine scenario: list album containing 3 photos`` () =
                     | getPersonalSpaceFolderForPhoto1 when
                         getPersonalSpaceFolderForPhoto1
                         |> matches
-                            "http://ds.address/photo/webapi/entry.cgi/SYNO.Foto.Browse.Folder"
+                            "http://ds.address:5000/webapi/entry.cgi/SYNO.Foto.Browse.Folder"
                             actualContentString
                             [ "_sid=fake_sid"
                               "api=SYNO.Foto.Browse.Folder"
@@ -136,7 +144,7 @@ let ``Full sunshine scenario: list album containing 3 photos`` () =
                     | getPersonalSpaceFolderForPhoto2 when
                         getPersonalSpaceFolderForPhoto2
                         |> matches
-                            "http://ds.address/photo/webapi/entry.cgi/SYNO.Foto.Browse.Folder"
+                            "http://ds.address:5000/webapi/entry.cgi/SYNO.Foto.Browse.Folder"
                             actualContentString
                             [ "_sid=fake_sid"
                               "api=SYNO.Foto.Browse.Folder"
@@ -150,7 +158,7 @@ let ``Full sunshine scenario: list album containing 3 photos`` () =
                     | getSharedSpaceFolderForPhoto2 when
                         getSharedSpaceFolderForPhoto2
                         |> matches
-                            "http://ds.address/photo/webapi/entry.cgi/SYNO.FotoTeam.Browse.Folder"
+                            "http://ds.address:5000/webapi/entry.cgi/SYNO.FotoTeam.Browse.Folder"
                             actualContentString
                             [ "_sid=fake_sid"
                               "api=SYNO.FotoTeam.Browse.Folder"
@@ -164,7 +172,7 @@ let ``Full sunshine scenario: list album containing 3 photos`` () =
                     | getPersonalFolderForPhoto3 when
                         getPersonalFolderForPhoto3
                         |> matches
-                            "http://ds.address/photo/webapi/entry.cgi/SYNO.Foto.Browse.Folder"
+                            "http://ds.address:5000/webapi/entry.cgi/SYNO.Foto.Browse.Folder"
                             actualContentString
                             [ "_sid=fake_sid"
                               "api=SYNO.Foto.Browse.Folder"
@@ -178,7 +186,7 @@ let ``Full sunshine scenario: list album containing 3 photos`` () =
                     | getSharedSpaceFolderForPhoto3 when
                         getSharedSpaceFolderForPhoto3
                         |> matches
-                            "http://ds.address/photo/webapi/entry.cgi/SYNO.FotoTeam.Browse.Folder"
+                            "http://ds.address:5000/webapi/entry.cgi/SYNO.FotoTeam.Browse.Folder"
                             actualContentString
                             [ "_sid=fake_sid"
                               "api=SYNO.FotoTeam.Browse.Folder"
@@ -200,7 +208,7 @@ let ``Full sunshine scenario: list album containing 3 photos`` () =
             }
 
         (* Act *)
-        let! actualResult = Program.execute args "ExecutableName" sendRequestStub
+        let! actualResult = Program.execute args "ExecutableName" sendRequestStub fakeLogger
 
         (* Assert *)
         match actualResult with
@@ -228,7 +236,7 @@ let ``Print help message`` () =
             task { return new HttpResponseMessage() }
 
         (* Act *)
-        let! actualResult = Program.execute args "ExecutableName" sendRequestStub
+        let! actualResult = Program.execute args "ExecutableName" sendRequestStub fakeLogger
 
         (* Assert *)
         match actualResult with

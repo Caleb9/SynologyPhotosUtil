@@ -23,7 +23,7 @@ let internal createGetOwnedAlbumsRequest
     (sid: SynologyApi.SessionId)
     (offset: int)
     : HttpRequestMessage =
-    SynologyApi.createRequest address "photo/webapi/entry.cgi/SYNO.Foto.Browse.Album"
+    SynologyApi.createRequest address "webapi/entry.cgi/SYNO.Foto.Browse.Album"
     <| SynologyApi.createCommonFormUrlEncodedContentKeysAndValues "SYNO.Foto.Browse.Album" 2 "list" (Some sid)
        @ [ ("offset", $"{offset}")
            ("limit", $"{dataListBatchSize}")
@@ -44,7 +44,7 @@ let internal createListPhotosBatchRequest
     (albumId: int)
     (offset: int)
     : HttpRequestMessage =
-    SynologyApi.createRequest address "photo/webapi/entry.cgi"
+    SynologyApi.createRequest address "webapi/entry.cgi"
     <| SynologyApi.createCommonFormUrlEncodedContentKeysAndValues "SYNO.Foto.Browse.Item" 1 "list" (Some sid)
        @ [ ("album_id", $"%i{albumId}")
            ("offset", $"%i{offset}")
@@ -62,7 +62,7 @@ let internal createGetFolderRequest
     (api: string)
     (folderId: int)
     : HttpRequestMessage =
-    SynologyApi.createRequest address $"photo/webapi/entry.cgi/{api}"
+    SynologyApi.createRequest address $"webapi/entry.cgi/{api}"
     <| SynologyApi.createCommonFormUrlEncodedContentKeysAndValues api 1 "get" (Some sid)
        @ [ ("api", api)
            ("version", "1")
