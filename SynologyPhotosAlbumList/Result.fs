@@ -47,7 +47,10 @@ let internal mapAsyncToSync (mapping: 'T -> 'U) (asyncResult: Async<Result<'T, '
         return Result.map mapping result
     }
 
-let internal mapErrorAsyncToSync (mapping: 'TError -> 'U) (asyncResult: Async<Result<'T, 'TError>>) : Async<Result<'T, 'U>> =
+let internal mapErrorAsyncToSync
+    (mapping: 'TError -> 'U)
+    (asyncResult: Async<Result<'T, 'TError>>)
+    : Async<Result<'T, 'U>> =
     async {
         let! result = asyncResult
         return Result.mapError mapping result

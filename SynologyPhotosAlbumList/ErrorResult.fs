@@ -10,3 +10,5 @@ type ErrorResult =
     | InvalidHttpResponse of StatusCode: HttpStatusCode * ReasonPhrase: string
     | InvalidApiResponse of RequestType: string * Code: int
     | AlbumNotFound of AlbumName: string
+    | UnexpectedAlbumType of AlbumType: string
+    | FolderNotFound of FolderPath: string

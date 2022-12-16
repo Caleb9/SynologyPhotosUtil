@@ -41,17 +41,16 @@ Common command options (available for all commands):
     -o, --otp <OTP-CODE>        OTP code when 2FA is enabled for user account
 ```
 
-* ALBUM-NAME as it stands in Synology Photos (note: user needs to be
-  the owner of this album)
+* ALBUM-NAME as it stands in Synology Photos
 
 See the usage example below.
 
 
 ## Usage example
 
-Assuming your Synology NAS user account is named "my_user", and you
-are an *owner* of a Synology Photos album "My Album", you can run the
-application in a following way:
+Assuming a Synology NAS user account is named "my_user" and has access
+to Synology Photos album "My Album", the application can be executed
+in following way:
 
 ```
 dotnet run -- list "My Album" -a http://diskstation.address -u my_user -p my_password
@@ -70,9 +69,9 @@ the last argument e.g.:
 dotnet run -- list "My Album" -a http://diskstation.address -u my_user -p my_password -o 123456
 ```
 
-Depending on your connection speed, how many albums you have and how
-many photos are added to "My Album", querying the API can take a
-moment. The output can for example look like this:
+Depending on the connection speed, and how many photos are added to
+"My Album", querying the API can take a moment. The output can look
+like this, for example:
 
 ```
 P: /personal_space_folder/my_photos/IMG_1111.jpg
@@ -89,15 +88,17 @@ In this case "My Album" contains 3 photos:
   leading "S"), i.e. under `photo` shared folder in
   `shared_space_folder`.
 * In case of IMG\_3333.jpeg the physical location of the file is
-  inaccessible for my\_user. This happens e.g. when there are other
-  NAS users having *provider* access to "My Album" and they added
-  photos from folders to which my\_user does not have access. These
-  photos are listed at the end of the output.
+  inaccessible to my\_user. This happens e.g. when there are other NAS
+  users having *provider* access to "My Album" and they added photos
+  from their personal space. Another possibility is that "My Album"
+  has been created by another user and shared with my\_user -
+  depending on permissions, some or all of the photo locations may be
+  inaccessible for my\_user. These photos are listed at the end of the
+  output.
 
 
 ## TODO
 
-* Query albums that user is not owner of, but has access to
 * Add add-photo-to-album command
 * Add optional debug information
 * Add export to Synology Photos folder command

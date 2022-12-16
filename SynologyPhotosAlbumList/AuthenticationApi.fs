@@ -12,8 +12,7 @@ let private createLoginRequest
     =
     let queryParams =
         SynologyApi.createCommonFormUrlEncodedContentKeysAndValues "SYNO.API.Auth" 7 "login" None
-        @ [ ("account", account)
-            ("passwd", password) ]
+        @ [ ("account", account); ("passwd", password) ]
 
     let otpCode =
         match otp with
@@ -31,10 +30,9 @@ let internal login
         SynologyApi.sendRequest<SynologyApi.ApiResponseDto<LoginDto>> sendAsync
         <| fun () -> createLoginRequest address credentials
 
-    let validateLoginDto =
-        SynologyApi.validateApiResponseDto "Login"
+    let validateLoginDto = SynologyApi.validateApiResponseDto "Login"
 
     sendLoginRequest
     |> Result.bindAsyncToSync validateLoginDto
-    |> Result.mapAsyncToSync SynologyApi.getDataFromResponseDto
+    |> Result.mapAsyncToSync SynologyApi.extractDataFromResponseDto
     |> Result.mapAsyncToSync (fun { Sid = sid } -> SynologyApi.SessionId sid)

@@ -4,7 +4,6 @@ open System
 open System.Collections.Generic
 open System.Net.Http
 open System.Net.Http.Json
-open System.Text.Json
 open System.Threading.Tasks
 open SynologyPhotosAlbumList
 
@@ -27,16 +26,16 @@ let internal sendRequest<'TResponseDto>
                 let! dto = HttpContentJsonExtensions.ReadFromJsonAsync<'TResponseDto> response.Content
                 // let! dtoString = response.Content.ReadAsStringAsync()
                 // let dto =
-                //     JsonSerializer.Deserialize(
+                //     System.Text.Json.JsonSerializer.Deserialize(
                 //         dtoString,
-                //         JsonSerializerOptions(PropertyNameCaseInsensitive = true));
+                //         System.Text.Json.JsonSerializerOptions(PropertyNameCaseInsensitive = true));
                 return Ok dto
             | false ->
                 return
                     Error
                     <| ErrorResult.InvalidHttpResponse(response.StatusCode, response.ReasonPhrase)
-        with
-        | :? HttpRequestException as ex -> return Error <| ErrorResult.RequestFailed ex
+        with :? HttpRequestException as ex ->
+            return Error <| ErrorResult.RequestFailed ex
     }
 
 type public ApiResponseDto<'TData> =
@@ -50,9 +49,7 @@ let internal validateApiResponseDto
     : Result<ApiResponseDto<'TData>, ErrorResult> =
     match dto.Success, dto.Error with
     | true, None -> Ok dto
-    | false, Some errorDto ->
-        Error
-        <| ErrorResult.InvalidApiResponse(requestType, errorDto.Code)
+    | false, Some errorDto -> Error <| ErrorResult.InvalidApiResponse(requestType, errorDto.Code)
     | _ -> invalidArg (nameof dto) "Unexpected data received"
 
 type private QueryParam = string * string
@@ -63,8 +60,7 @@ let internal createRequest
     (formUrlEncodedContentKeysAndValues: QueryParam seq)
     : HttpRequestMessage =
     let requestUrl =
-        let baseAddress, path =
-            address.AbsoluteUri.TrimEnd '/', path.Trim().TrimStart('/')
+        let baseAddress, path = address.AbsoluteUri.TrimEnd '/', path.Trim().TrimStart('/')
 
         Uri $"{baseAddress}/{path}"
 
@@ -82,17 +78,15 @@ let internal createCommonFormUrlEncodedContentKeysAndValues
     (api: string)
     (version: int)
     (method: string)
-    : SessionId option -> QueryParam list =
-    let queryParams =
-        [ ("api", api)
-          ("version", $"{version}")
-          ("method", method) ]
+    (sid: SessionId option)
+    : QueryParam list =
+    let queryParams = [ ("api", api); ("version", string version); ("method", method) ]
 
-    function
-    | Some (SessionId sid) -> ("_sid", sid) :: queryParams
+    match sid with
+    | Some (SessionId sid') -> ("_sid", sid') :: queryParams
     | None -> queryParams
 
-let internal getDataFromResponseDto: ApiResponseDto<'a> -> 'a =
+let internal extractDataFromResponseDto: ApiResponseDto<'a> -> 'a =
     function
     | { Data = Some data } -> data
     | _ -> invalidArg (nameof ApiResponseDto) "Unexpected data received"

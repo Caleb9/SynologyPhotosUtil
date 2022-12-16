@@ -17,9 +17,9 @@ let public execute
     (* TODO conditionally enable this *)
     let sendAsyncWithLogger request =
         task {
-            logger.LogDebug(request.ToString())
+            logger.LogDebug(string request)
             let! response = sendAsync request
-            logger.LogDebug(response.ToString())
+            logger.LogDebug(string response)
             return response
         }
 
@@ -31,21 +31,28 @@ let public execute
                                         AlbumName = albumName } ->
             AuthenticationApi.login sendAsync address credentials
             |> Result.bindAsyncToAsync (ListAlbumCommand.invoke sendAsync address albumName)
+        | Arguments.Command.ExportAlbum { Address = address
+                                          Credentials = credentials
+                                          AlbumName = albumName
+                                          FolderPath = folderPath } ->
+            AuthenticationApi.login sendAsync address credentials
+            |> Result.bindAsyncToAsync (ExportAlbumCommand.invoke sendAsync address albumName folderPath)
         | Arguments.Command.Help -> async { return Ok <| Arguments.helpMessage executableName })
     |> Result.mapErrorAsyncToSync (function
         | ErrorResult.InvalidArguments -> "Invalid arguments. Execute with --help option to see available arguments", 1
-        | ErrorResult.InvalidUrl invalidUrl -> $"{invalidUrl} is not a valid URL", 2
-        | ErrorResult.RequestFailed ex -> $"API request failed: {ex.Message}", 3
+        | ErrorResult.InvalidUrl invalidUrl -> $"%s{invalidUrl} is not a valid URL", 2
+        | ErrorResult.RequestFailed ex -> $"API request failed: %s{ex.Message}", 3
         | ErrorResult.InvalidHttpResponse (statusCode, reasonPhrase) ->
-            $"Invalid HTTP response {statusCode}: {reasonPhrase}", 4
-        | ErrorResult.InvalidApiResponse (requestType, code) -> $"{requestType} failed with API code {code}", 5
-        | ErrorResult.AlbumNotFound albumName -> $"Album \"{albumName}\" not found in owned albums", 6)
+            $"Invalid HTTP response %A{statusCode}: %s{reasonPhrase}", 4
+        | ErrorResult.InvalidApiResponse (requestType, code) -> $"%s{requestType} failed with API code {code}", 5
+        | ErrorResult.AlbumNotFound albumName -> $"""Album "%s{albumName}" not found in owned albums""", 6
+        | ErrorResult.UnexpectedAlbumType albumType -> $"""Unsupported album type {$"%s{albumType}"}""", 7
+        | ErrorResult.FolderNotFound folderPath -> $"""Folder "%s{folderPath}" not found in personal space""", 8)
 
 [<EntryPoint>]
 let internal main args =
     async {
-        let executableName =
-            AppDomain.CurrentDomain.FriendlyName
+        let executableName = AppDomain.CurrentDomain.FriendlyName
 
         use httpClient = new HttpClient()
 
@@ -53,14 +60,9 @@ let internal main args =
             httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead)
 
         use loggerFactory =
-            LoggerFactory.Create (fun builder ->
-                builder
-                    .SetMinimumLevel(LogLevel.Debug)
-                    .AddSimpleConsole()
-                |> ignore)
+            LoggerFactory.Create(fun builder -> builder.SetMinimumLevel(LogLevel.Debug).AddSimpleConsole() |> ignore)
 
-        let logger =
-            loggerFactory.CreateLogger executableName
+        let logger = loggerFactory.CreateLogger executableName
 
         match! execute args executableName sendRequest logger with
         | Ok output ->
