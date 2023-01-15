@@ -133,6 +133,68 @@ let ``Valid list command without OTP`` () =
               Password = Arguments.Password "my_password"
               Otp = None }
           AlbumName = Arguments.AlbumName "My Album" }
+        
+[<Fact>]
+let ``Valid export command`` () =
+    [| "-a"
+       "http://some.address"
+       "-u"
+       "my_user"
+       "-p"
+       "my_password"
+       "export"
+       "My Album"
+       "/some/folder" |]
+    |> Arguments.parseArgs
+    |> assertOkCommand
+    <| Arguments.Command.ExportAlbum
+        { Address = Arguments.Address(Uri("http://some.address:5000"))
+          Credentials =
+            { Account = Arguments.Account "my_user"
+              Password = Arguments.Password "my_password"
+              Otp = None }
+          AlbumName = Arguments.AlbumName "My Album"
+          FolderPath = Arguments.FolderPath "/some/folder" }
+
+[<Fact>]
+let ``When list command but album argument is missing, ErrorResult.InvalidArguments is returned`` () =
+    [| "-a"
+       "http://some.address"
+       "-u"
+       "my_user"
+       "-p"
+       "my_password"
+       "list" |]
+    |> Arguments.parseArgs
+    |> assertErrorResult
+    <| ErrorResult.InvalidArguments
+
+[<Fact>]
+let ``When export command but arguments are missing, ErrorResult.InvalidArguments is returned`` () =
+    [| "-a"
+       "http://some.address"
+       "-u"
+       "my_user"
+       "-p"
+       "my_password"
+       "export" |]
+    |> Arguments.parseArgs
+    |> assertErrorResult
+    <| ErrorResult.InvalidArguments
+
+[<Fact>]
+let ``When export command but folder argument is missing, ErrorResult.InvalidArguments is returned`` () =
+    [| "-a"
+       "http://some.address"
+       "-u"
+       "my_user"
+       "-p"
+       "my_password"
+       "export"
+       "My Album" |]
+    |> Arguments.parseArgs
+    |> assertErrorResult
+    <| ErrorResult.InvalidArguments
 
 [<Fact>]
 let ``Valid help option on it's own`` () =
@@ -279,7 +341,7 @@ let ``When command is missing, ErrorResult.InvalidArguments is returned`` () =
     <| ErrorResult.InvalidArguments
 
 [<Fact>]
-let ``When list command and address is missing, ErrorResult.InvalidArguments is returned`` () =
+let ``When list command but address is missing, ErrorResult.InvalidArguments is returned`` () =
     [| "-u"
        "my_user"
        "-p"
@@ -291,7 +353,7 @@ let ``When list command and address is missing, ErrorResult.InvalidArguments is 
     <| ErrorResult.InvalidArguments
 
 [<Fact>]
-let ``When list command and account is missing, ErrorResult.InvalidArguments is returned`` () =
+let ``When list command but account is missing, ErrorResult.InvalidArguments is returned`` () =
     [| "list"
        "My Album"
        "-a"
@@ -303,7 +365,7 @@ let ``When list command and account is missing, ErrorResult.InvalidArguments is 
     <| ErrorResult.InvalidArguments
 
 [<Fact>]
-let ``When list command and password is missing, ErrorResult.InvalidArguments is returned`` () =
+let ``When list command but password is missing, ErrorResult.InvalidArguments is returned`` () =
     [| "list"
        "My Album"
        "-a"
