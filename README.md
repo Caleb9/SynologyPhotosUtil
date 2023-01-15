@@ -1,12 +1,14 @@
 # Synology Photos Album List
 
-List folders containing photos in a Synology Photos album.
+List folders containing photos in a Synology Photos album. Supports
+also copying album contents into a Synology Photos folder.
 
 
 ## Why?
 
 This is a simple console app querying Synology Photos API to deduce
-locations (folder paths) of photos added to a Synology Photos *album*.
+locations (folder paths) of photos added to a Synology Photos *album*
+or copy photos added to an album to a folder..
 
 I used it while doing some spring cleaning of photos on my Synology
 DiskStation NAS. Maybe someone will find it handy as well.
@@ -29,16 +31,19 @@ arguments:
 
 ```
 Global options:
-    -h, --help                  Prints this message
+    -h, --help                          Prints this message
 
 Commands:
-    list <ALBUM-NAME>           List photos in album
+    list <ALBUM-NAME>                   List photos in album
+    export <ALBUM-NAME> <FOLDER-PATH>   Copy photos to a folder in personal space
     
 Common command options (available for all commands):
-    -a, --address <URL>         [REQUIRED] HTTP(S) address of Synology DSM
-    -u, --user <USER-NAME>      [REQUIRED] DSM user account name
-    -p, --password <PASSWORD>   [REQUIRED] DSM user account password
-    -o, --otp <OTP-CODE>        OTP code when 2FA is enabled for user account
+    -a, --address <URL>                 [REQUIRED] HTTP(S) address of Synology DSM
+    -u, --user <USER-NAME>              [REQUIRED] DSM user account name
+    -p, --password <PASSWORD>           [REQUIRED] DSM user account password
+    -o, --otp <OTP-CODE>                OTP code when 2FA is enabled for user account
+
+<ALBUM-NAME> and <FOLDER-PATH> are case sensitive. <FOLDER-PATH> must exist in user's personal space. 
 ```
 
 * ALBUM-NAME as it stands in Synology Photos
@@ -47,6 +52,8 @@ See the usage example below.
 
 
 ## Usage example
+
+### Listing an album
 
 Assuming a Synology NAS user account is named "my_user" and has access
 to Synology Photos album "My Album", the application can be executed
@@ -96,13 +103,27 @@ In this case "My Album" contains 3 photos:
   inaccessible for my\_user. These photos are listed at the end of the
   output.
 
+### Exporting an album
+
+```
+dotnet run -- list "My Album" "/folder A/folder B" -a http://diskstation.address -u my_user -p my_password
+```
+
+Note that currently `/folder A/folder B` needs to already exist in
+user's personal space.
+
+The command schedules a background task to copy the photos, so the
+output needs to be investigated in Synology Photos web interface
+(Background Tasks icon in the top right region) - remember to refresh
+the page to see it. Photos inaccessible due to permissions will not be
+copied. If there are identically named photos in the target folder
+already, they will not get overwritten.
 
 ## TODO
 
 * Add add-photo-to-album command
 * Add optional debug information
-* Add export to Synology Photos folder command
-
+* Improve output of export command
 
 ## Code disclaimer
 
