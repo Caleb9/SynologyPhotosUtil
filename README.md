@@ -1,4 +1,4 @@
-# Synology Photos Album List
+# Synology Photos Util
 
 List folders containing photos in a Synology Photos album. Supports
 also copying album contents into a Synology Photos folder.

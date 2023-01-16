@@ -1,4 +1,4 @@
-namespace SynologyPhotosAlbumList
+namespace SynologyPhotosUtil
 
 open System
 open System.Net

@@ -1,4 +1,4 @@
-module private SynologyPhotosAlbumList.ListAlbumCommand
+module private SynologyPhotosUtil.ListAlbumCommand
 
 open System
 open System.Text

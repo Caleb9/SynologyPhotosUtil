@@ -1,7 +1,7 @@
-module SynologyPhotosAlbumList.PhotosApi
+module SynologyPhotosUtil.PhotosApi
 
 open System.Net.Http
-open SynologyPhotosAlbumList
+open SynologyPhotosUtil
 
 type public AlbumDto =
     { Id: int

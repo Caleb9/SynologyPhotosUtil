@@ -6,7 +6,7 @@ open System.Net.Http
 open System.Net.Http.Json
 open System.Text.RegularExpressions
 open Microsoft.Extensions.Logging
-open SynologyPhotosAlbumList
+open SynologyPhotosUtil
 open Xunit
 open FsUnit
 

@@ -1,11 +1,11 @@
-module SynologyPhotosAlbumList.SynologyApi
+module SynologyPhotosUtil.SynologyApi
 
 open System
 open System.Collections.Generic
 open System.Net.Http
 open System.Net.Http.Json
 open System.Threading.Tasks
-open SynologyPhotosAlbumList
+open SynologyPhotosUtil
 
 type internal SendRequest = HttpRequestMessage -> Task<HttpResponseMessage>
 

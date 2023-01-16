@@ -1,7 +1,7 @@
-module private SynologyPhotosAlbumList.CommandFunctions
+module private SynologyPhotosUtil.CommandFunctions
 
 open FSharp.Control
-open SynologyPhotosAlbumList
+open SynologyPhotosUtil
 
 let internal searchForAlbum
     (sendAsync: SynologyApi.SendRequest)

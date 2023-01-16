@@ -1,6 +1,6 @@
-module SynologyPhotosAlbumList.AuthenticationApi
+module SynologyPhotosUtil.AuthenticationApi
 
-open SynologyPhotosAlbumList
+open SynologyPhotosUtil
 
 type public LoginDto = (* cannot be private, otherwise JSON deserializer crashes *) { Sid: string }
 

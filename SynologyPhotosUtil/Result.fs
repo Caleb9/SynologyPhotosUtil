@@ -1,4 +1,4 @@
-module private SynologyPhotosAlbumList.Result
+module private SynologyPhotosUtil.Result
 
 let internal bindSyncToAsync
     (asyncBinder: 'T1 -> Async<Result<'T2, 'TError>>)

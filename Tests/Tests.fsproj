@@ -29,7 +29,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\SynologyPhotosAlbumList\SynologyPhotosAlbumList.fsproj" />
+        <ProjectReference Include="..\SynologyPhotosUtil\SynologyPhotosUtil.fsproj" />
     </ItemGroup>
 
     <ItemGroup>

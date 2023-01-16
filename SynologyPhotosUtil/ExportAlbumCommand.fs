@@ -1,4 +1,4 @@
-module private SynologyPhotosAlbumList.ExportAlbumCommand
+module private SynologyPhotosUtil.ExportAlbumCommand
 
 let private findFolderId sendAsync address sid (Arguments.FolderPath path) =
     let sanitizedPath = $"/%s{path.Trim().Trim('/')}"

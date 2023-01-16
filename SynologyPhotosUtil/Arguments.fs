@@ -1,8 +1,8 @@
-module SynologyPhotosAlbumList.Arguments
+module SynologyPhotosUtil.Arguments
 
 open System
 open System.Text.RegularExpressions
-open SynologyPhotosAlbumList
+open SynologyPhotosUtil
 
 let internal helpMessage (executableName: string) =
     $"""Usage: %s{executableName} [options] [command] [command-arguments] [options]

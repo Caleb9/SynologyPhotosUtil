@@ -1,9 +1,9 @@
-﻿module SynologyPhotosAlbumList.Program
+﻿module SynologyPhotosUtil.Program
 
 open System
 open System.Net.Http
 open Microsoft.Extensions.Logging
-open SynologyPhotosAlbumList
+open SynologyPhotosUtil
 
 type private ErrorOutputAndExitCode = string * int
 

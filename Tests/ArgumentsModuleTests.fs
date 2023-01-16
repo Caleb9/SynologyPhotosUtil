@@ -3,7 +3,7 @@ module Tests.ArgumentsModuleTests
 open System
 open Xunit
 open FsUnit
-open SynologyPhotosAlbumList
+open SynologyPhotosUtil
 
 let private assertOkCommand actualResult expectedCommand =
     match actualResult with
