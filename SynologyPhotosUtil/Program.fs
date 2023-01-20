@@ -2,6 +2,7 @@
 
 open System
 open System.Net.Http
+open System.Reflection
 open Microsoft.Extensions.Logging
 open SynologyPhotosUtil
 
@@ -10,6 +11,7 @@ type private ErrorOutputAndExitCode = string * int
 let public execute
     (args: string array)
     (executableName: string)
+    (version: string)
     (sendAsync: SynologyApi.SendRequest)
     (logger: ILogger)
     : Async<Result<string, ErrorOutputAndExitCode>> =
@@ -37,7 +39,8 @@ let public execute
                                           FolderPath = folderPath } ->
             AuthenticationApi.login sendAsync address credentials
             |> Result.bindAsyncToAsync (ExportAlbumCommand.invoke sendAsync address albumName folderPath)
-        | Arguments.Command.Help -> async { return Ok <| Arguments.helpMessage executableName })
+        | Arguments.Command.Help -> async { return Ok <| Arguments.helpMessage executableName }
+        | Arguments.Command.Version -> async { return Ok <| version })
     |> Result.mapErrorAsyncToSync (function
         | ErrorResult.InvalidArguments -> "Invalid arguments. Execute with --help option to see available arguments", 1
         | ErrorResult.InvalidUrl invalidUrl -> $"%s{invalidUrl} is not a valid URL", 2
@@ -54,6 +57,15 @@ let internal main args =
     async {
         let executableName = AppDomain.CurrentDomain.FriendlyName
 
+        let version =
+            match
+                Assembly
+                    .GetEntryAssembly()
+                    .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            with
+            | null -> "unknown"
+            | version -> version.InformationalVersion
+
         use httpClient = new HttpClient()
 
         let sendRequest request =
@@ -64,7 +76,7 @@ let internal main args =
 
         let logger = loggerFactory.CreateLogger executableName
 
-        match! execute args executableName sendRequest logger with
+        match! execute args executableName version sendRequest logger with
         | Ok output ->
             printfn $"{output}"
             return 0

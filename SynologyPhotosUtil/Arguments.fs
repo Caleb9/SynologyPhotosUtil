@@ -9,6 +9,7 @@ let internal helpMessage (executableName: string) =
 
 Global options:
     -h, --help                          Prints this message
+    -v, --version                       Print version information
 
 Commands:
     list <ALBUM-NAME>                   List photos in album
@@ -38,6 +39,8 @@ Examples:
     * Export photos in album to a folder in private space
     
         %s{executableName} export ""My album"" ""/my_folder/my_album_backup"" --address http://my.ds.nas --user my_user --password my_password
+
+Find new versions and more information on https://github.com/Caleb9/SynologyPhotosUtil
 """
 
 type Account = Account of string
@@ -69,9 +72,11 @@ type Command =
     | ListAlbum of ListAlbumArgs
     | ExportAlbum of ExportAlbumArgs
     | Help
+    | Version
 
 type private IntermediateArguments =
     { Help: unit option
+      Version: unit option
       ListAlbumCommand: string option
       ExportAlbumCommand: string option * string option
       Address: string option
@@ -81,6 +86,7 @@ type private IntermediateArguments =
 
     static member empty =
         { Help = None
+          Version = None
           ListAlbumCommand = None
           ExportAlbumCommand = None, None
           Address = None
@@ -126,7 +132,8 @@ let private mapArgumentsToCommands =
         Address = Some urlString
         Account = Some account
         Password = Some password
-        Otp = otp } ->
+        Otp = otp
+        Version = None } ->
         match listAlbumCommand, exportAlbumCommand with
         | Some albumName, (None, None) ->
             validateUrlAndSetPort urlString
@@ -150,6 +157,13 @@ let private mapArgumentsToCommands =
                       AlbumName = AlbumName albumName
                       FolderPath = FolderPath folderPath })
         | _ -> Error ErrorResult.InvalidArguments
+    | { Version = Some ()
+        ListAlbumCommand = None
+        ExportAlbumCommand = None, None
+        Address = None
+        Account = None
+        Password = None
+        Otp = None } -> Ok Version
     | _ -> Error ErrorResult.InvalidArguments
 
 let parseArgs (args: string array) : Result<Command, ErrorResult> =
@@ -157,6 +171,7 @@ let parseArgs (args: string array) : Result<Command, ErrorResult> =
         match args' with
         | [] -> arguments
         | ("--help" | "-h") :: _ -> { IntermediateArguments.empty with Help = Some() }
+        | ("--version" | "-v") :: xs -> tokenizeArgs { IntermediateArguments.empty with Version = Some() } xs
         | "list" :: albumName :: xs -> tokenizeArgs { arguments with ListAlbumCommand = Some albumName } xs
         | "export" :: albumName :: folderPath :: xs ->
             tokenizeArgs { arguments with ExportAlbumCommand = Some albumName, Some folderPath } xs

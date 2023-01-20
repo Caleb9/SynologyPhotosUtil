@@ -16,15 +16,14 @@ DiskStation NAS. Maybe someone will find it handy as well.
 
 ## How?
 
-Code is targetting in .NET 6, and currently I don't plan to build
-binaries for it. That means that **you need to have [.NET 6
-SDK](https://dotnet.microsoft.com/en-us/download/dotnet/6.0) installed
-to compile and run the app**.
+Download the archive for your platform from Releases, unzip and
+execute
 
-Assuming that's done, clone the repository and in
-`{repository_root}/SynologyPhotosAlbumList` simply do
+```./SynologyPhotosUtil --help```
 
-```dotnet run -- --help```
+or on Windows
+
+```SynologyPhotosUtil.exe --help```
 
 This will display a help message about required command line
 arguments:
@@ -32,6 +31,7 @@ arguments:
 ```
 Global options:
     -h, --help                          Prints this message
+    -v, --version                       Print version information
 
 Commands:
     list <ALBUM-NAME>                   List photos in album
@@ -60,7 +60,7 @@ to Synology Photos album "My Album", the application can be executed
 in following way:
 
 ```
-dotnet run -- list "My Album" -a http://diskstation.address -u my_user -p my_password
+./SynologyPhotosUtil list "My Album" -a http://diskstation.address -u my_user -p my_password
 ```
 
 **Note**: The address value should be the same as the one you use to
@@ -73,7 +73,7 @@ you must also provide a one time code from your authenticator app as
 the last argument e.g.:
 
 ```
-dotnet run -- list "My Album" -a http://diskstation.address -u my_user -p my_password -o 123456
+./SynologyPhotosUtil list "My Album" -a http://diskstation.address -u my_user -p my_password -o 123456
 ```
 
 Depending on the connection speed, and how many photos are added to
@@ -106,7 +106,7 @@ In this case "My Album" contains 3 photos:
 ### Exporting an album
 
 ```
-dotnet run -- list "My Album" "/folder A/folder B" -a http://diskstation.address -u my_user -p my_password
+./SynologyPhotosUtil export "My Album" "/folder A/folder B" -a http://diskstation.address -u my_user -p my_password
 ```
 
 Note that currently `/folder A/folder B` needs to already exist in

@@ -197,7 +197,7 @@ let ``Full sunshine scenario: list owned album containing 3 photos`` () =
             }
 
         (* Act *)
-        let! actualResult = Program.execute args "ExecutableName" sendRequestStub fakeLogger
+        let! actualResult = Program.execute args "ExecutableName" "test-version" sendRequestStub fakeLogger
 
         (* Assert *)
         match actualResult with
@@ -384,7 +384,7 @@ let ``Full sunshine scenario: list "shared with me" album containing 3 photos`` 
             }
 
         (* Act *)
-        let! actualResult = Program.execute args "ExecutableName" sendRequestStub fakeLogger
+        let! actualResult = Program.execute args "ExecutableName" "test-version" sendRequestStub fakeLogger
 
         (* Assert *)
         match actualResult with
@@ -558,7 +558,7 @@ let ``Full sunshine scenario: export album containing 3 photos`` () =
             }
 
         (* Act *)
-        let! actualResult = Program.execute args "ExecutableName" sendRequestStub fakeLogger
+        let! actualResult = Program.execute args "ExecutableName" "test-version" sendRequestStub fakeLogger
 
         (* Assert *)
         match actualResult with
@@ -580,7 +580,7 @@ let ``Print help message`` () =
             task { return new HttpResponseMessage() }
 
         (* Act *)
-        let! actualResult = Program.execute args "ExecutableName" sendRequestStub fakeLogger
+        let! actualResult = Program.execute args "ExecutableName" "test-version" sendRequestStub fakeLogger
 
         (* Assert *)
         match actualResult with

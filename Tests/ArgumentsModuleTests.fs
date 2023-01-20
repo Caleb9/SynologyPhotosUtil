@@ -196,9 +196,11 @@ let ``When export command but folder argument is missing, ErrorResult.InvalidArg
     |> assertErrorResult
     <| ErrorResult.InvalidArguments
 
-[<Fact>]
-let ``Valid help option on it's own`` () =
-    [| "--help" |]
+[<Theory>]
+[<InlineData "--help">]
+[<InlineData "-h">]
+let ``Valid help option on it's own`` arg =
+    [| arg |]
     |> Arguments.parseArgs
     |> assertOkCommand
     <| Arguments.Command.Help
@@ -215,10 +217,20 @@ let ``When help option is specified with other arguments, help takes precedence`
        "123456"
        "list"
        "My Album"
+       "--version"
        "--help" |]
     |> Arguments.parseArgs
     |> assertOkCommand
     <| Arguments.Command.Help
+
+[<Theory>]
+[<InlineData "--version">]
+[<InlineData "-v">]
+let ``Valid version option on it's own`` arg =
+    [| arg |]
+    |> Arguments.parseArgs
+    |> assertOkCommand
+    <| Arguments.Command.Version
 
 [<Fact>]
 let ``When list option with invalid URL, ErrorResult.InvalidUrl is returned`` () =

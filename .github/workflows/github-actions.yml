@@ -1,0 +1,98 @@
+name: SynologyPhotosUtil
+
+run-name: ${{ github.ref_name }}
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+env:
+  PROJECT_NAME: SynologyPhotosUtil
+
+jobs:
+  build-test-publish:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        rid: [linux-x64, win-x64, osx-x64, osx-arm64]
+
+    env:
+      Output_Name: SynologyPhotosUtil-${{ matrix.rid }}
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0
+        with:
+          versionSpec: '5.x'
+      
+      - name: Determine Version
+        uses: gittools/actions/gitversion/execute@v0
+        with:
+          additionalArguments: '/updateprojectfiles'
+
+      - name: Install dependencies
+        # TODO: add `--runtime ${{ matrix.rid }}` switch when at least
+        # dotnet-sdk-6.0.200 can be used (to restore and test steps)
+        run: |
+          echo \
+            osx-arm64 testing is broken in dotnet-sdk version currently available \
+            on Ubuntu \(6.0.113\). Because of that, restoring with runtime \
+            specified does not make sense for that platform. Temporarily \(until \
+            fixed version of dotnet-sdk becomes available in Ubuntu's \
+            repositories\) run the tests targeting host's platform \(linux-x64\).
+          dotnet restore
+
+      - name: Test
+        run: |
+          dotnet test \
+            --configuration Release \
+            --no-restore \
+            --verbosity normal
+
+      - name: Publish
+        run: |
+          dotnet publish \
+            --runtime ${{ matrix.rid }} \
+            --configuration Release \
+            --self-contained \
+            --output $Output_Name \
+            -p:PublishSingleFile=true \
+            -p:PublishTrimmed=true \
+            -p:DebugType=none \
+            $PROJECT_NAME
+
+      - name: Zip artifacts
+        run: |
+          cp LICENSE $Output_Name
+          zip -r $Output_Name-$GitVersion_SemVer.zip $Output_Name
+
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.Output_Name }}
+          path: ${{ env.Output_Name }}-${{ env.GitVersion_SemVer }}.zip
+
+  create-release-draft:
+    needs: build-test-publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        
+      - name: Create pre-release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: '**/${{ env.PROJECT_NAME }}-*.zip'
+          draft: true
