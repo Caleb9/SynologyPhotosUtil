@@ -19,7 +19,7 @@ jobs:
         rid: [linux-x64, win-x64, osx-x64, osx-arm64]
 
     env:
-      Output_Name: SynologyPhotosUtil-${{ matrix.rid }}
+      Output_Name: SynologyPhotosUtil-${{ github.ref_name }}-${{ matrix.rid }}
 
     steps:
       - name: Check out repository code
@@ -74,13 +74,13 @@ jobs:
       - name: Zip artifacts
         run: |
           cp LICENSE $Output_Name
-          zip -r $Output_Name-$GitVersion_SemVer.zip $Output_Name
+          zip -r $Output_Name.zip $Output_Name
 
       - name: Archive production artifacts
         uses: actions/upload-artifact@v3
         with:
           name: ${{ env.Output_Name }}
-          path: ${{ env.Output_Name }}-${{ env.GitVersion_SemVer }}.zip
+          path: ${{ env.Output_Name }}.zip
 
   create-release-draft:
     needs: build-test-publish
