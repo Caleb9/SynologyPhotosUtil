@@ -43,25 +43,36 @@ let private copyPhotos sendAsync address sid targetFolderId photoDtos =
                 ([], [])
                 photoDtos
 
-        let createRequest space dtos =
-            PhotosApi.createCopyPhotoRequest
-                address
-                sid
-                space
-                (Seq.map (fun (dto: PhotosApi.PhotoDto) -> dto.Id) dtos)
-                targetFolderId
+        let createRequestOption space dtos =
+            match dtos with
+            | [] -> None
+            | _ ->
+                PhotosApi.createCopyPhotoRequest
+                    address
+                    sid
+                    space
+                    (Seq.map (fun (dto: PhotosApi.PhotoDto) -> dto.Id) dtos)
+                    targetFolderId
+                |> Some
 
         let copyPersonalPhotosRequest =
-            createRequest PhotosApi.Space.Personal personalSpacePhotoDtos
+            createRequestOption PhotosApi.Space.Personal personalSpacePhotoDtos
 
         let copySharedPhotosRequest =
-            createRequest PhotosApi.Space.Shared sharedSpacePhotoDtos
+            createRequestOption PhotosApi.Space.Shared sharedSpacePhotoDtos
 
         let sendRequest request =
             SynologyApi.sendRequest<SynologyApi.ApiResponseDto<PhotosApi.TaskInfoDto>> sendAsync (fun () -> request)
 
         let! taskResults =
-            [ sendRequest copyPersonalPhotosRequest; sendRequest copySharedPhotosRequest ]
+            [ copyPersonalPhotosRequest; copySharedPhotosRequest ]
+            |> Seq.fold
+                (fun requests requestOption ->
+                    match requestOption with
+                    | None -> requests
+                    | Some request -> request :: requests)
+                []
+            |> Seq.map sendRequest
             |> Async.Parallel
 
         return foldResults taskResults

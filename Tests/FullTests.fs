@@ -780,6 +780,154 @@ let ``Full sunshine scenario: export album containing 3 photos`` () =
     }
 
 [<Fact>]
+let ``Full sunshine scenario: export album containing 3 photos all in personal space`` () =
+    async {
+        (* Arrange *)
+        let args =
+            [| "--address"
+               "http://ds.address/"
+               "export"
+               "my_album"
+               "/folder/exported_album"
+               "--user"
+               "my_user"
+               "--password"
+               "my_password"
+               "--otp"
+               "123456" |]
+
+        let sendRequestStub (request: HttpRequestMessage) =
+            task {
+                let! actualContentString = request.Content.ReadAsStringAsync()
+
+                return
+                    match request with
+                    | login when
+                        login
+                        |> matches
+                            "http://ds.address:5000/webapi/entry.cgi"
+                            actualContentString
+                            [ "api=SYNO.API.Auth"
+                              "version=7"
+                              "method=login"
+                              "account=my_user"
+                              "passwd=my_password"
+                              "otp_code=123456" ]
+                        ->
+                        createResponseWithJsonContent
+                            {| Success = true
+                               Data = {| Sid = "fake_sid" |} |}
+                    | searchAlbums when
+                        searchAlbums
+                        |> matches
+                            "http://ds.address:5000/webapi/entry.cgi/SYNO.Foto.Search.Search"
+                            actualContentString
+                            [ "_sid=fake_sid"
+                              "api=SYNO.Foto.Search.Search"
+                              "version=4"
+                              "method=suggest"
+                              "keyword=my_album" ]
+                        ->
+                        createResponseWithJsonContent
+                            {| Success = true
+                               Data =
+                                {| List =
+                                    [ {| Id = 1
+                                         Name = "NOT_my_album"
+                                         Type = "shared_with_me"
+                                         Passphrase = "fake-passphrase" |}
+                                      {| Id = 42
+                                         Name = "my_album"
+                                         Type = "album"
+                                         Passphrase = "" |} ] |} |}
+                    | getPhotosInAlbum when
+                        getPhotosInAlbum
+                        |> matches (* first batch of photos *)
+                            "http://ds.address:5000/webapi/entry.cgi"
+                            actualContentString
+                            [ "_sid=fake_sid"
+                              "album_id=42"
+                              "api=SYNO.Foto.Browse.Item"
+                              "version=1"
+                              "method=list"
+                              "offset=0"
+                              "limit=100" ]
+                        ->
+                        createResponseWithJsonContent
+                            {| Success = true
+                               Data =
+                                {| List =
+                                    [ {| Id = 1
+                                         Owner_user_id = 2
+                                         Folder_id = 3
+                                         Filename = "photo1" |}
+                                      {| Id = 4
+                                         Owner_user_id = 2
+                                         Folder_id = 6
+                                         Filename = "photo2" |}
+                                      {| Id = 7
+                                         Owner_user_id = 2
+                                         Folder_id = 9
+                                         Filename = "photo3" |} ] |} |}
+                    | getTargetFolder when
+                        getTargetFolder
+                        |> matches
+                            "http://ds.address:5000/webapi/entry.cgi/SYNO.Foto.Browse.Folder"
+                            actualContentString
+                            [ "_sid=fake_sid"
+                              "api=SYNO.Foto.Browse.Folder"
+                              "version=1"
+                              "method=get"
+                              "name=" + WebUtility.UrlEncode "/folder/exported_album" ]
+                        ->
+                        createResponseWithJsonContent
+                            {| Success = true
+                               Data =
+                                {| Folder =
+                                    {| Id = 10
+                                       Name = "/folder/exported_album" |} |} |}
+                    | copyPersonalSpacePhotos when
+                        copyPersonalSpacePhotos
+                        |> matches
+                            "http://ds.address:5000/webapi/entry.cgi/SYNO.Foto.BackgroundTask.File"
+                            actualContentString
+                            [ "_sid=fake_sid"
+                              "api=SYNO.Foto.BackgroundTask.File"
+                              "version=1"
+                              "method=copy"
+                              "item_id=" + WebUtility.UrlEncode "[7,4,1]"
+                              "target_folder_id=10"
+                              "action=skip"
+                              "folder_id=" + WebUtility.UrlEncode "[]" ]
+                        ->
+                        createResponseWithJsonContent
+                            {| Success = true
+                               Data =
+                                {| Task_info =
+                                    {| Completion = 0
+                                       Status = "waiting"
+                                       Target_folder = {| Id = 10; Owner_user_id = 5 |}
+                                       Total = 3 |} |} |}
+                    | missingSetup ->
+                        failwith
+                        <| $"Unexpected request received:\n%A{missingSetup}\n"
+                           + $"Content: %s{actualContentString}\nDid you set up the stub correctly?"
+            }
+
+        (* Act *)
+        let! actualResult = Program.execute args "ExecutableName" "test-version" sendRequestStub fakeLogger
+
+        (* Assert *)
+        match actualResult with
+        | Ok stdOut ->
+            stdOut
+            |> should
+                equal
+                "Album export started. Please see Background Tasks progress in the Synology Photos web interface."
+        | Error _ -> actualResult |> should be (ofCase <@ Result<string, string * int>.Ok @>)
+    }
+
+[<Fact>]
 let ``Print help message`` () =
     async {
         (* Arrange *)
