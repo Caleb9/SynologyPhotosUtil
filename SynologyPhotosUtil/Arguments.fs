@@ -12,7 +12,7 @@ Global options:
     -v, --version                       Print version information
 
 Commands:
-    list <ALBUM-NAME>                   List photos in album
+    list <ALBUM-NAME>                   List photos in an album
     export <ALBUM-NAME> <FOLDER-PATH>   Copy photos to a folder in personal space
     
 Common command options (available for all commands):
@@ -21,7 +21,8 @@ Common command options (available for all commands):
     -p, --password <PASSWORD>           [REQUIRED] DSM user account password
     -o, --otp <OTP-CODE>                OTP code when 2FA is enabled for user account
 
-<ALBUM-NAME> and <FOLDER-PATH> are case sensitive. <FOLDER-PATH> must exist in user's personal space. 
+<ALBUM-NAME> and <FOLDER-PATH> are case sensitive. <FOLDER-PATH> must exist in user's personal space.
+<ALBUM-NAME> can be a person in "People" album.
 
 Examples:
     * List photos in album

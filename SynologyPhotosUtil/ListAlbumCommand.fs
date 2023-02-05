@@ -83,6 +83,7 @@ let internal invoke
         <| match folderResult with
            | Ok { FolderDto = { Name = name }
                   Shared = shared } ->
+               let name = name.TrimEnd '/'
                match shared with
                | true -> $"S: %s{name}/%s{photoName}"
                | false -> $"P: %s{name}/%s{photoName}"

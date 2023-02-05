@@ -44,6 +44,7 @@ Common command options (available for all commands):
     -o, --otp <OTP-CODE>                OTP code when 2FA is enabled for user account
 
 <ALBUM-NAME> and <FOLDER-PATH> are case sensitive. <FOLDER-PATH> must exist in user's personal space. 
+<ALBUM-NAME> can be a person in "People" album.
 ```
 
 * ALBUM-NAME as it stands in Synology Photos, enclose in quotes if the
@@ -104,6 +105,7 @@ In this example "My Album" contains 3 photos:
   for my\_user. These photos are listed at the end of the output with
   a leading `ERROR` message.
 
+
 ### Exporting an album
 
 ```
@@ -120,11 +122,14 @@ the page to see it. Photos inaccessible due to permissions will not be
 copied. If there are identically named photos in the target folder
 already, they will not get overwritten.
 
+
 ## TODO
 
 * Add add-photo-to-album command
 * Add optional debug information
 * Improve output of export command
+* Add support for "Places" albums
+
 
 ## Code disclaimer
 

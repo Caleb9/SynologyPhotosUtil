@@ -70,6 +70,7 @@ type internal PhotoListDto = ListDto<PhotoDto>
 type internal Album =
     | Id of int
     | Passphrase of string
+    | Person of int
 
 let internal createListPhotosBatchRequest
     (address: Arguments.Address)
@@ -80,6 +81,7 @@ let internal createListPhotosBatchRequest
     let albumIdParam =
         match album with
         | Id id -> ("album_id", string id)
+        | Person id -> ("person_id", string id)
         | Passphrase passphrase -> ("passphrase", passphrase)
 
     SynologyApi.createRequest address "webapi/entry.cgi"
@@ -129,7 +131,6 @@ let internal createGetFolderRequest
     <| SynologyApi.createCommonFormUrlEncodedContentKeysAndValues api 1 "get" (Some sid)
        @ [ folderParam ]
 
-(* TODO photos from Shared Space need to use SYNO.FotoTeam.BackgroundTask.File API *)
 let internal createCopyPhotoRequest
     (address: Arguments.Address)
     (sid: SynologyApi.SessionId)

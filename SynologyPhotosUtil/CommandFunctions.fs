@@ -65,6 +65,7 @@ let internal listAlbum
     async {
         match albumDto.Type with
         | "album" -> return! listPhotosInAlbum sendAsync baseAddress sid (PhotosApi.Album.Id albumDto.Id)
+        | "person" -> return! listPhotosInAlbum sendAsync baseAddress sid (PhotosApi.Album.Person albumDto.Id)
         | "shared_with_me" ->
             return! listPhotosInAlbum sendAsync baseAddress sid (PhotosApi.Album.Passphrase albumDto.Passphrase)
         | _ -> return Error <| ErrorResult.UnexpectedAlbumType albumDto.Type
