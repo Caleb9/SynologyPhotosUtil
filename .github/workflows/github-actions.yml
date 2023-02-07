@@ -28,6 +28,8 @@ jobs:
           fetch-depth: 0
       
       - name: Setup .NET
+        # TODO: add architecture specifier based on matrix when setup-dotnet
+        # adds this feature
         uses: actions/setup-dotnet@v3
 
       - name: Install GitVersion
@@ -41,15 +43,15 @@ jobs:
           additionalArguments: '/updateprojectfiles'
 
       - name: Install dependencies
-        # TODO: add `--runtime ${{ matrix.rid }}` switch when at least
-        # dotnet-sdk-6.0.200 can be used (to restore and test steps)
+        # TODO: add `--runtime ${{ matrix.rid }}` when setup-dotnet allows
+        # architecture selection for arm64 (to restore and test steps)
         run: |
           echo \
-            osx-arm64 testing is broken in dotnet-sdk version currently available \
-            on Ubuntu \(6.0.113\). Because of that, restoring with runtime \
-            specified does not make sense for that platform. Temporarily \(until \
-            fixed version of dotnet-sdk becomes available in Ubuntu's \
-            repositories\) run the tests targeting host's platform \(linux-x64\).
+            osx-arm64 testing is broken because setup-dotnet steps does not install \
+            arm64 architecture dotnet. There's a WIP on the issue. Because of that, \
+            restoring with runtime specified does not make sense for that platform. \
+            Temporarily \(until setup-dotnet-sdk adds support for architectures\) \
+            run the tests targeting host's platform \(linux-x64\).
           dotnet restore
 
       - name: Test
