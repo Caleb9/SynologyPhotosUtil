@@ -27,19 +27,19 @@ Common command options (available for all commands):
 Examples:
     * List photos in album
 
-        %s{executableName} list ""My album"" --address http://my.ds.nas --user my_user --password my_password
+        %s{executableName} list "My album" --address http://my.ds.nas --user my_user --password my_password
 
       With OTP code if my_user account needs two factor authentication
       
-        %s{executableName} list ""My album"" --address http://my.ds.nas --user my_user --password my_password --otp 123456
+        %s{executableName} list "My album" --address http://my.ds.nas --user my_user --password my_password --otp 123456
 
       When DSM uses non-standard port number (not 5000 for HTTP or 5001 for HTTPS)
 
-        %s{executableName} list ""My album"" --address http://my.ds.nas:8000 --user my_user --password my_password
+        %s{executableName} list "My album" --address http://my.ds.nas:8000 --user my_user --password my_password
     
     * Export photos in album to a folder in private space
     
-        %s{executableName} export ""My album"" ""/my_folder/my_album_backup"" --address http://my.ds.nas --user my_user --password my_password
+        %s{executableName} export "My album" "/my_folder/my_album_backup" --address http://my.ds.nas --user my_user --password my_password
 
 Find new versions and more information on https://github.com/Caleb9/SynologyPhotosUtil
 """
