@@ -23,14 +23,14 @@ jobs:
 
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       
       - name: Setup .NET
         # TODO: add architecture specifier based on matrix when setup-dotnet
         # adds this feature
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
 
       - name: Install GitVersion
         uses: gittools/actions/gitversion/setup@v0
@@ -78,7 +78,7 @@ jobs:
           zip -r $Output_Name.zip $Output_Name
 
       - name: Archive production artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.Output_Name }}
           path: ${{ env.Output_Name }}.zip
