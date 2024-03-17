@@ -227,11 +227,11 @@ let ``Full sunshine scenario: list owned album containing 4 photos`` () =
             |> should
                 equal
                 (sprintf
-                    "%s\n%s\n%s\n%s\n"
-                    "S: /b/shared/folder2/photo3"
-                    "P: /c/private/folder1/photo1"
-                    "P: /photo4"
-                    "ERROR: photo2 folder inaccessible")
+                    "%s%s%s%s"
+                    ("S: /b/shared/folder2/photo3" + Environment.NewLine)
+                    ("P: /c/private/folder1/photo1" + Environment.NewLine)
+                    ("P: /photo4" + Environment.NewLine)
+                    ("ERROR: photo2 folder inaccessible" + Environment.NewLine))
         | Error _ -> actualResult |> should be (ofCase <@ Result<string, string * int>.Ok @>)
     }
 
@@ -415,10 +415,10 @@ let ``Full sunshine scenario: list person album containing 3 photos`` () =
             |> should
                 equal
                 (sprintf
-                    "%s\n%s\n%s\n"
-                    "S: /b/shared/folder2/photo3"
-                    "P: /c/private/folder1/photo1"
-                    "ERROR: photo2 folder inaccessible")
+                    "%s%s%s"
+                    ("S: /b/shared/folder2/photo3" + Environment.NewLine)
+                    ("P: /c/private/folder1/photo1" + Environment.NewLine)
+                    ("ERROR: photo2 folder inaccessible" + Environment.NewLine))
         | Error _ -> actualResult |> should be (ofCase <@ Result<string, string * int>.Ok @>)
     }
 
@@ -602,10 +602,10 @@ let ``Full sunshine scenario: list shared_with_me album containing 3 photos`` ()
             |> should
                 equal
                 (sprintf
-                    "%s\n%s\n%s\n"
-                    "S: /b/shared/folder2/photo3"
-                    "P: /c/private/folder1/photo1"
-                    "ERROR: photo2 folder inaccessible")
+                    "%s%s%s"
+                    ("S: /b/shared/folder2/photo3" + Environment.NewLine)
+                    ("P: /c/private/folder1/photo1" + Environment.NewLine)
+                    ("ERROR: photo2 folder inaccessible" + Environment.NewLine))
         | Error _ -> actualResult |> should be (ofCase <@ Result<string, string * int>.Ok @>)
     }
 

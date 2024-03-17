@@ -69,7 +69,6 @@ jobs:
             --self-contained \
             --output $Output_Name \
             -p:PublishSingleFile=true \
-            -p:PublishTrimmed=true \
             -p:DebugType=none \
             $PROJECT_NAME
 
