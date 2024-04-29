@@ -1,3 +1,9 @@
+# Archive / Retirement Notice
+
+> Please use the new and improved version of this app:
+> [caleb9/syno-photos-util](https://github.com/caleb9/syno-photos-util).
+
+
 # Synology Photos Util
 
 * List folders containing photos in a Synology Photos album
